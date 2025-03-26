@@ -1,0 +1,13 @@
+# This file is used by pip to install required python packages
+# Usage: pip install -r requirements.txt
+
+# Using a virtual environment:   
+#    python3 -m venv venv
+#    source venv/bin/activate
+#    python3 -m pip install -r requirements.txt
+
+Flask==3.1.0
+psycopg==3.2.6
+python-dotenv==1.0.1
+pytest==8.3.5
+requests==2.32.3

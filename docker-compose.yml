@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: classconect-users
+      POSTGRES_DB: classconnect_users
+    ports:
+      - "5432:5432"
+    networks:
+      - courses_network
+    volumes:
+      - ./initialize_users_db.sql:/docker-entrypoint-initdb.d/initialize_users_db.sql
+
+  app:
+    build: .
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - courses_network
+    command: ["flask", "run", "--host=0.0.0.0", "--port=8080"]
+
+networks:
+  courses_network:
+    driver: bridge

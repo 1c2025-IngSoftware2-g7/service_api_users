@@ -1,0 +1,7 @@
+ALL_COURSES = "A list of courses"
+ONE_COURSE = "Course retrieved successfully"
+NEW_COURSE = "Course created successfully"
+BAD_REQUEST = "Bad request error"
+NOT_COURSE = "Course not found"
+SERVER_ERROR = "Internal server error"
+DELETE = "Course deleted successfully"
