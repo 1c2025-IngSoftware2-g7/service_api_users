@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify
-import uuid
 import logging
 import os
+from flask import Flask, request
 
-from headers import BAD_REQUEST, DELETE, NOT_users
+from src.application.user_service import UserService
+from src.infrastructure.persistence.users_repository import UsersRepository
+from src.presentation.user_controller import UserController
 
 users_app = Flask(__name__)
 
@@ -11,18 +12,21 @@ env = os.getenv("FLASK_ENV")
 
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
-
 users_logger = users_app.logger
+
+# Here: - Each class is created: presentation, infrastructure, controller.
 
 """
 Get all users.
 """
 @users_app.get("/users")
 def get_users():
-    # execute_query
-    users = []
+    user_service = UserService()
+    user_repository = UsersRepository()
+    user_controller = UserController(user_service, user_repository)
+    result = user_controller.get_users()
 
-    return jsonify({"data": users}), 200
+    return result["response"], result["code_status"] #jsonify({"data": users}), 200
 
 
 """
@@ -30,25 +34,12 @@ Get specific user.
 """
 @users_app.get("/users/<uuid:uuid>")
 def get_specific_users(uuid):
-    # execute_query {"uuid": uuid}
-    user = {}
+    user_repository = UsersRepository()
+    user_service = UserService(user_repository)
+    user_controller = UserController(user_service)
+    result = user_controller.get_user(uuid)
 
-    if user:
-        return jsonify({"data": user}), 200
-
-    users_logger.error(f"{NOT_users} with uuid {uuid}")
-    return (
-        jsonify(
-            {
-                "type": "about:blank",
-                "title": NOT_users,
-                "status": 0,
-                "detail": f"The users with uuid {uuid} was not found",
-                "instance": f"/users/{uuid}",
-            }
-        ),
-        404,
-    )
+    return result["response"], result["code_status"]
 
 
 """
@@ -56,26 +47,12 @@ Delete user.
 """
 @users_app.delete("/users/<uuid:uuid>")
 def delete_specific_users(uuid):
-    # SELECT execute_query {"uuid": uuid}
-    user = {}
+    user_service = UserService()
+    user_repository = UsersRepository()
+    user_controller = UserController(user_service, user_repository)
 
-    if user:
-        # DELETE execute_query {"uuid": uuid}
-        return jsonify({"result": DELETE}), 204
-
-    users_logger.error(f"{NOT_users} with uuid {uuid}")
-    return (
-        jsonify(
-            {
-                "type": "about:blank",
-                "title": NOT_users,
-                "status": 0,
-                "detail": f"The users with uuid {uuid} was not found",
-                "instance": f"/users/{uuid}",
-            }
-        ),
-        404,
-    )
+    result = user_controller.delete(uuid)
+    return result["response"], result["code_status"]
 
 
 """
@@ -84,21 +61,9 @@ In Flask: uuid.UUID is serialized to a string.
 """
 @users_app.post("/users")
 def add_users():
-    if request.is_json:
-        users = request.get_json()
-        # INSERT execute_query users
-        return jsonify({"data": users}), 201
+    user_service = UserService()
+    user_repository = UsersRepository()
+    user_controller = UserController(user_service, user_repository)
 
-    users_logger.error(f"{BAD_REQUEST} with body: {users}")
-    return (
-        jsonify(
-            {
-                "type": "about:blank",
-                "title": BAD_REQUEST,
-                "status": 0,
-                "detail": f"{BAD_REQUEST} with body: {users}",
-                "instance": f"/users",
-            }
-        ),
-        400,
-    )
+    result = user_controller.create_user(request)
+    return result["response"], result["code_status"]
