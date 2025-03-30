@@ -21,7 +21,10 @@ class UserController:
         users = self.user_servide.get_users() # list of instance of Users() (domain)
         
         # deserialize users:
-        return jsonify({"data": users}), 200
+        return {
+            "response": jsonify({"data": users}), 
+            "code_status": 200
+        }
         
     """
     Get specific user.
@@ -32,8 +35,8 @@ class UserController:
         if user:
             return jsonify({"data": user}), 200
         
-        return (
-            jsonify(
+        return {
+            "response": jsonify(
                 {
                     "type": "about:blank",
                     "title": NOT_USER,
@@ -42,8 +45,8 @@ class UserController:
                     "instance": f"/users/{uuid}",
                 }
             ),
-            404,
-        )
+            "code_status": 404,
+        }
 
 
     """
@@ -52,10 +55,13 @@ class UserController:
     def delete_specific_users(self, uuid):
         if self.get_user(uuid):
             self.user_service.delete(uuid)
-            return jsonify({"result": DELETE}), 204
+            return {
+                "response": jsonify({"result": DELETE}), 
+                "code_status": 204
+            }
 
-        return (
-            jsonify(
+        return {
+            "response": jsonify(
                 {
                     "type": "about:blank",
                     "title": NOT_USER,
@@ -64,8 +70,8 @@ class UserController:
                     "instance": f"/users/{uuid}",
                 }
             ),
-            404,
-        )
+            "code_status": 404,
+        }
 
 
     """
@@ -78,8 +84,8 @@ class UserController:
             self.user_service.create(user)
             return jsonify({"data": user}), 201
 
-        return (
-            jsonify(
+        return {
+            "response": jsonify(
                 {
                     "type": "about:blank",
                     "title": BAD_REQUEST,
@@ -88,5 +94,5 @@ class UserController:
                     "instance": f"/users",
                 }
             ),
-            400,
-        )
+            "code_status": 400,
+       } 
