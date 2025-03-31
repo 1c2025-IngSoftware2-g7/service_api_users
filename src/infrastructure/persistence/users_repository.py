@@ -1,13 +1,19 @@
+from infrastructure.config.db_config import DatabaseConfig
 from infrastructure.persistence.base_entity import BaseEntity
 from src.domain.user import User
 
 class UsersRepository(BaseEntity):
+    def __init__(self):
+        super().__init__()
+        print(f"DEBUG: UsersRepository creado correctamente -> {self}", flush=True)
+
+
     def _parse_user(self, user_params):
         return User(user_params["uuid"], user_params["name"], user_params["surname"], user_params["password"], user_params["email"], user_params["status"], user_params["role"])
 
 
     def get_all_users(self):
-        query = "SELECT * FROM users ORDER BY publication_date DESC"
+        query = "SELECT * FROM users"
         self.cursor.execute(query)
         users = self.cursor.fetchall()
 

@@ -11,14 +11,14 @@ or sending the response back to the client (in case we’re operating deep in th
 - It has serialization and deserialization logic. Validations. Authentication.
 """
 class UserController:
-    def __init___(self, user_service: UserService): 
+    def __init__(self, user_service: UserService): 
         # Layered Architecture: Each class receives the instance of the other classes.
         self.user_service = user_service
-        return        
+        return
 
     """Get all users."""
     def get_users(self):
-        users = self.user_servide.get_users() # list of instance of Users() (domain)
+        users = self.user_service.get_users() # list of instance of Users() (domain)
         
         # deserialize users:
         return {
@@ -30,7 +30,7 @@ class UserController:
     Get specific user.
     """
     def get_specific_users(self, uuid):
-        user = self.user_servide.get_specific_users(uuid) # instance of Users() (domain)
+        user = self.user_service.get_specific_users(uuid) # instance of Users() (domain)
 
         if user:
             return jsonify({"data": user}), 200

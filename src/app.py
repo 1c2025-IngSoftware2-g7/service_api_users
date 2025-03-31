@@ -21,9 +21,9 @@ Get all users.
 """
 @users_app.get("/users")
 def get_users():
-    user_service = UserService()
     user_repository = UsersRepository()
-    user_controller = UserController(user_service, user_repository)
+    user_service = UserService(user_repository)
+    user_controller = UserController(user_service)
     result = user_controller.get_users()
 
     return result["response"], result["code_status"] #jsonify({"data": users}), 200
@@ -47,9 +47,9 @@ Delete user.
 """
 @users_app.delete("/users/<uuid:uuid>")
 def delete_specific_users(uuid):
-    user_service = UserService()
     user_repository = UsersRepository()
-    user_controller = UserController(user_service, user_repository)
+    user_service = UserService(user_repository)
+    user_controller = UserController(user_service)
 
     result = user_controller.delete(uuid)
     return result["response"], result["code_status"]
@@ -61,9 +61,9 @@ In Flask: uuid.UUID is serialized to a string.
 """
 @users_app.post("/users")
 def add_users():
-    user_service = UserService()
     user_repository = UsersRepository()
-    user_controller = UserController(user_service, user_repository)
+    user_service = UserService(user_repository)
+    user_controller = UserController(user_service)
 
     result = user_controller.create_user(request)
     return result["response"], result["code_status"]

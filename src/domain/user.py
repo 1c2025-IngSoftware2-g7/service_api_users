@@ -9,7 +9,7 @@ in some cases, services.
 """
 
 class User:
-    def __init___(self, uuid, name, surname, password, email, status, role):
+    def __init__(self, uuid, name, surname, password, email, status, role):
         # attributes
         self.uuid = uuid
         self.name = name

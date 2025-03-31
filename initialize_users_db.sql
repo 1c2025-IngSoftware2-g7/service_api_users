@@ -31,6 +31,9 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO user_db;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO user_db;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO user_db;
 
+-- Enable the uuid-ossp extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Create the 'courses' table
 CREATE TABLE IF NOT EXISTS users (
     uuid UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

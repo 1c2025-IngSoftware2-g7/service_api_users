@@ -14,17 +14,18 @@ This layer can include:
 - Communicates with the repository layer, which can return a User domain
 """
 class UserService:
-    def __init___(self, user_repository = UsersRepository):
+    def __init__(self, user_repository: UsersRepository):
         self.user_repository = user_repository
-        return
+        print(f"DEBUG: user_repository en UserService -> {type(user_repository)}", flush=True)
 
 
     """Get all users."""
     def get_users(self):
+        print(f"DEBUG: self.user_repository is {type(self.user_repository)}")
         users = self.user_repository.get_all_users()
         return users
-    
-    
+
+
     """
     Get specific user.
     """
