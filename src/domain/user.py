@@ -7,7 +7,6 @@ in some cases, services.
 - Returns an instance of the domain.
 - User definition.
 """
-
 class User:
     def __init__(self, uuid, name, surname, password, email, status, role):
         # attributes

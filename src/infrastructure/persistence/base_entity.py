@@ -1,26 +1,23 @@
 import psycopg
+import time
 from src.infrastructure.config.db_config import DatabaseConfig
 
 class BaseEntity:
-    # instance = None
-
-    # def __new__(cls, *args, **kwargs):
-    #     if cls.instance is None:
-    #         cls.instance = super().__new__(BaseEntity)
-    #         return cls.instance
-    #     return cls.instance
 
     def __init__(self):
-        self.conn = self.connect()
+        self.conn = self.connect_with_retries()
         self.cursor = self.conn.cursor()
 
-    def connect(self):
-        try:
-            db_config = DatabaseConfig()
-            connection_strings = db_config.connection_strings
-            return psycopg.connect(connection_strings)
-        except psycopg.Error as e:
-            raise RuntimeError("Database connection error.")
+    """Retry connecting to the DB until it is available."""
+    def connect_with_retries(self, retries=5, delay=3):
+        for attempt in range(retries):
+            try:
+                connection_string = DatabaseConfig().connection_strings
+                return psycopg.connect(connection_string)
+            except psycopg.OperationalError:
+                time.sleep(delay)
+        raise RuntimeError("Database connection error.")
+
         
     def commit(self):
         self.cursor.commit()
