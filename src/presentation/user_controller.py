@@ -67,7 +67,7 @@ class UserController:
     Delete user.
     """
     def delete_specific_users(self, uuid):
-        if self.get_user(uuid):
+        if self.get_specific_users(uuid):
             self.user_service.delete(uuid)
             return {
                 "response": jsonify({"result": DELETE}), 
