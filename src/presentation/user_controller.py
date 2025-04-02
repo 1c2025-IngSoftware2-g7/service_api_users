@@ -11,21 +11,30 @@ or sending the response back to the client (in case we’re operating deep in th
 - It has serialization and deserialization logic. Validations. Authentication.
 """
 class UserController:
-    def __init__(self, user_service: UserService): 
-        # Layered Architecture: Each class receives the instance of the other classes.
+    def __init__(self, user_service: UserService, logger): 
         self.user_service = user_service
+        self.log = logger
         return
+    
 
-    """Get all users."""
+    def _serialize_user(self, user):
+        return user.__dict__
+    
+
+    """
+    Get all users.
+    """
     def get_users(self):
         users = self.user_service.get_users() # list of instance of Users() (domain)
+        users = [self._serialize_user(user) for user in users]
+        self.log.debug(f"DEBUG: in controller: users is {users}")
         
-        # deserialize users:
         return {
             "response": jsonify({"data": users}), 
             "code_status": 200
         }
-        
+    
+
     """
     Get specific user.
     """
@@ -33,7 +42,12 @@ class UserController:
         user = self.user_service.get_specific_users(uuid) # instance of Users() (domain)
 
         if user:
-            return jsonify({"data": user}), 200
+            user = self._serialize_user(user)
+            self.log.debug(f"DEBUG: user is {user}")
+            return {
+                "response": jsonify({"data": user}),
+                "code_status": 200
+            }
         
         return {
             "response": jsonify(
@@ -79,10 +93,15 @@ class UserController:
     In Flask: uuid.UUID is serialized to a string.
     """
     def create_users(self, request):
+        print(f"DEBUG: request in create_users -> {request}", flush=True)
+
         if request.is_json:
             user = request.get_json()
             self.user_service.create(user)
-            return jsonify({"data": user}), 201
+            return {
+                "response": jsonify({"data": user}),
+                "code_status": 201
+            }
 
         return {
             "response": jsonify(
