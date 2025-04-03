@@ -1,0 +1,7 @@
+ALL_USERS = "A list of USERs"
+ONE_USER = "User retrieved successfully"
+NEW_USER = "User created successfully"
+BAD_REQUEST = "Bad request error"
+NOT_USER = "User not found"
+SERVER_ERROR = "Internal server error"
+DELETE = "User deleted successfully"

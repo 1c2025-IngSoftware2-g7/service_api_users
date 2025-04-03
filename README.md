@@ -33,7 +33,7 @@ Adicionalmente, menciono a continuación lo utilizado dentro de los contenedores
 
 ## 4. Tests
 Para la implementación de los test de integración, se utilizó la librería [pytest](https://www.psycopg.org/psycopg3/docs/basic/index.html).  
-Estos se encuentran desarrollados en ```./test/api_test.py```.  
+Estos se encuentran desarrollados en ```./src/test/api_test.py```.  
 
 ## 5. Comandos para construir la imagen de Docker
 Al utilizar docker-compose, se puede construir todas las imágenes definidas en docker-compose.yml con el siguiente comando:

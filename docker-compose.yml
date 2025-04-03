@@ -16,14 +16,15 @@ services:
     build: .
     environment:
       - FLASK_ENV=development
-      - FLASK_APP=app.py
+      - FLASK_APP=src.app:users_app
+      - PYTHONPATH=/src
     ports:
       - "8080:8080"
     depends_on:
       - db
     networks:
       - courses_network
-    command: ["flask", "run", "--host=0.0.0.0", "--port=8080"]
+    command: ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=8080"]
 
 networks:
   courses_network:
