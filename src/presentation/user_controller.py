@@ -18,9 +18,21 @@ class UserController:
     
 
     def _serialize_user(self, user):
-        return user.__dict__
-    
+        return {
+            "uuid": user.uuid,
+            "name": user.name,
+            "surname": user.surname,
+            "password": user.password,
+            "email": user.email,
+            "status": user.status,
+            "role": user.role,
+            "location": None if user.location is None else {  
+                "latitude": user.location.latitude,
+                "longitude": user.location.longitude
+            } if user.location.latitude is not None and user.location.longitude is not None else None
+        }
 
+    
     """
     Get all users.
     """
@@ -67,7 +79,9 @@ class UserController:
     Delete user.
     """
     def delete_specific_users(self, uuid):
-        if self.get_specific_users(uuid):
+        self.log.debug(f"DEBUG: self.get_specific_users(uuid) delete -> {self.get_specific_users(uuid)}")
+
+        if self.get_specific_users(uuid)["code_status"] == 204:
             self.user_service.delete(uuid)
             return {
                 "response": jsonify({"result": DELETE}), 
@@ -93,10 +107,27 @@ class UserController:
     In Flask: uuid.UUID is serialized to a string.
     """
     def create_users(self, request):
-        print(f"DEBUG: request in create_users -> {request}", flush=True)
+        self.log.debug(f"DEBUG: request in create_users -> {request}")
 
         if request.is_json:
             user = request.get_json()
+            self.log.debug(f"DEBUG: json in create_users -> {user}")
+
+            result, msg = self._check_create_user_params(user)
+            if result == False:
+                return {
+                    "response": jsonify(
+                        {
+                            "type": "about:blank",
+                            "title": BAD_REQUEST,
+                            "status": 0,
+                            "detail": f"{BAD_REQUEST}: {msg}",
+                            "instance": f"/users",
+                        }
+                    ),
+                    "code_status": 400,
+                } 
+            
             self.user_service.create(user)
             return {
                 "response": jsonify({"data": user}),
@@ -117,28 +148,82 @@ class UserController:
        } 
 
 
-"""Add location."""
-def set_user_location(self, user_id, request):
-    data = request.get_json()
-    latitude = data.get("latitude")
-    longitude = data.get("longitude")
+    """Add location."""
+    def set_user_location(self, user_id, request):
+        data = request.get_json()
+        latitude = data.get("latitude")
+        longitude = data.get("longitude")
 
-    if latitude is None or longitude is None:
+        result, msg = self._check_location(latitude, longitude)
+        if result == False:
+            return {
+                "response": jsonify(
+                    {
+                        "type": "about:blank",
+                        "title": BAD_REQUEST,
+                        "status": 0,
+                        "detail": f"{BAD_REQUEST}: {msg}",
+                        "instance": f"/users/<uuid:user_id>/location",
+                    }
+                ),
+                "code_status": 400,
+            } 
+
+        if self.get_specific_users(user_id)["code_status"] == 204:
+            self.log.debug("User exists")
+            self.user_service.set_location(user_id, latitude, longitude)
+            return {
+                "response": jsonify({"result": PUT_LOCATION}),
+                "code_status": 200
+            }
+        
+        self.log.debug("User not exists")
         return {
             "response": jsonify(
                 {
                     "type": "about:blank",
-                    "title": BAD_REQUEST,
+                    "title": NOT_USER,
                     "status": 0,
-                    "detail": f"{BAD_REQUEST}: Location is required",
-                    "instance": f"/users",
+                    "detail": f"The users with uuid {user_id} was not found",
+                    "instance": f"/users/{user_id}/location",
                 }
             ),
-            "code_status": 400,
-       } 
+            "code_status": 404,
+        }
 
-    self.user_service.set_location(user_id, latitude, longitude)
-    return {
-        "response": jsonify({"result": PUT_LOCATION}),
-        "code_status": 200
-    }
+    def _check_location(self, latitude, longitude):
+
+        if latitude is None or longitude is None:
+            return False, "Location is required"
+    
+        try:
+            lat = float(latitude)
+            lon = float(longitude)
+
+            if not (-90 <= lat <= 90):
+                raise ValueError(f"Invalid latitude: {lat}. Must be between -90 and 90.")
+            
+            if not (-180 <= lon <= 180):
+                raise ValueError(f"Invalid longitude: {lon}. Must be between -180 and 180.")
+            
+            return True, "Ok."
+
+        except (TypeError, ValueError) as e:
+            msg = f"Invalid location data: {e}"
+            self.log.error(msg)
+            return False, msg
+
+
+    def _check_create_user_params(self, user_params):
+        missing_params = []
+
+        for param in ["name", "surname", "password", "email", "status", "role"]: 
+            if (not param in user_params) or (user_params[param] is None):
+                missing_params.append(param)
+                
+        if len(missing_params) > 0:
+            msg = f"Missing params: {", ".join(missing_params)}"
+            self.log.error(msg)
+            return False, msg
+    
+        return True, "Ok."

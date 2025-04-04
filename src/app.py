@@ -29,7 +29,6 @@ Get specific user.
 @users_app.get("/users/<uuid:uuid>")
 def get_specific_users(uuid):
     result = user_controller.get_specific_users(uuid)
-
     return result["response"], result["code_status"]
 
 
