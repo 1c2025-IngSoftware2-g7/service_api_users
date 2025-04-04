@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from headers import BAD_REQUEST, DELETE, NOT_USER
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 
@@ -115,3 +115,30 @@ class UserController:
             ),
             "code_status": 400,
        } 
+
+
+"""Add location."""
+def set_user_location(self, user_id, request):
+    data = request.get_json()
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+
+    if latitude is None or longitude is None:
+        return {
+            "response": jsonify(
+                {
+                    "type": "about:blank",
+                    "title": BAD_REQUEST,
+                    "status": 0,
+                    "detail": f"{BAD_REQUEST}: Location is required",
+                    "instance": f"/users",
+                }
+            ),
+            "code_status": 400,
+       } 
+
+    self.user_service.set_location(user_id, latitude, longitude)
+    return {
+        "response": jsonify({"result": PUT_LOCATION}),
+        "code_status": 200
+    }

@@ -47,3 +47,13 @@ class UserService:
     def create(self, request):
         self.user_repository.insert_user(request)
         return
+
+
+    """
+    Add location.
+    """
+    def set_location(self, uuid, latitude, longitude):
+        self.user_repository.set_location(
+            {"uuid": uuid, "latitude": latitude, "longitude": longitude}
+        )
+        return

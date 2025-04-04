@@ -60,3 +60,25 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query, params = params)
         self.conn.commit()
         return
+
+    """
+    Try inserting a new row into the user_locations table.
+    If the UUID already exists (primary key conflict), then update the latitude and longitude.
+    """
+    def set_location(self, params_new_user):
+        query = """
+        INSERT INTO user_locations (uuid, latitude, longitude)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (uuid)
+        DO UPDATE SET
+            latitude = EXCLUDED.latitude,
+            longitude = EXCLUDED.longitude;
+        """
+        params = (
+            params_new_user["uuid"], 
+            params_new_user["longitude"],
+            params_new_user["latitude"], 
+        )
+        self.cursor.execute(query, params = params)
+        self.conn.commit()
+        return
