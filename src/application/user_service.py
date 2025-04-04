@@ -47,3 +47,11 @@ class UserService:
     def create(self, request):
         self.user_repository.insert_user(request)
         return
+    
+    
+    """ 
+    Function that check if a mail is valid on the database
+    If it is, we return the user"""
+    def mail_exists(self, email):
+        return self.user_repository.check_email(email)
+
