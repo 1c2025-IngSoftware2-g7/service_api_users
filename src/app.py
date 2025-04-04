@@ -50,3 +50,11 @@ In Flask: uuid.UUID is serialized to a string.
 def add_users():
     result = user_controller.create_users(request)
     return result["response"], result["code_status"]
+
+"""
+Login a user
+"""
+@users_app.post("/users/login")
+def login_users():
+    result = user_controller.login_users(request)
+    return result["response"], result["code_status"]
