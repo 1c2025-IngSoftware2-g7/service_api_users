@@ -50,9 +50,19 @@ def add_users():
     result = user_controller.create_users(request)
     return result["response"], result["code_status"]
 
-
+"""
+Add user location.
+"""
 @users_app.put("/users/<uuid:user_id>/location")
 def set_user_location(user_id):
     result = user_controller.set_user_location(user_id, request)
     return result["response"], result["code_status"]
 
+
+"""
+Login a user
+"""
+@users_app.post("/users/login")
+def login_users():
+    result = user_controller.login_users(request)
+    return result["response"], result["code_status"]

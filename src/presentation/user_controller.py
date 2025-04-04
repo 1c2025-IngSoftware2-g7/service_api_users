@@ -1,8 +1,9 @@
 from flask import jsonify
 
-from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
+from werkzeug.security import check_password_hash
 
 """ 
 The presentation layer contains all of the classes responsible for presenting the UI to the end-user 
@@ -227,3 +228,66 @@ class UserController:
             return False, msg
     
         return True, "Ok."
+    
+
+    """
+    Login users.
+    """
+    def login_users(self, request):
+        if request.is_json:
+            data = request.get_json()
+            email = data["email"]
+            password = data["password"]
+
+            mail_exists = self.user_service.mail_exists(email)  
+
+            if mail_exists is None:
+                return {
+                    "response": jsonify(
+                        {
+                            "type": "about:blank",
+                            "title": NOT_USER,
+                            "status": 0,
+                            "detail": f"The email {email} was not found",
+                            "instance": f"/users/login",
+                        }
+                    ),
+                    "code_status": 404,
+                }
+
+            user_password = mail_exists[3] # this access the password
+            if check_password_hash(user_password, password):
+                # Do we need to return the user? . to ask
+                return {
+                    # Mail exists contain the user data.
+                    "response": jsonify({"data": mail_exists}),
+                    "code_status": 200
+                }
+            else:
+                return {
+                    "response": jsonify(
+                        {
+                            "type": "about:blank",
+                            "title": WRONG_PASSWORD,
+                            "status": 0,
+                            "detail": f"The password is not correct",
+                            "instance": f"/users/login",
+                        }
+                    ),
+                    "code_status": 403,
+                }
+
+        return {
+            "response": jsonify(
+                {
+                    "type": "about:blank",
+                    "title": BAD_REQUEST,
+                    "status": 0,
+                    "detail": f"{BAD_REQUEST} with body: {request}",
+                    "instance": f"/users/login",
+                }
+            ),
+            "code_status": 400,
+       }
+
+

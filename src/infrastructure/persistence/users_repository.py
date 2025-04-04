@@ -2,6 +2,7 @@ from domain.location import Location
 from infrastructure.config.db_config import DatabaseConfig
 from infrastructure.persistence.base_entity import BaseEntity
 from src.domain.user import User
+from werkzeug.security import generate_password_hash
 
 class UsersRepository(BaseEntity):
     def __init__(self, logger):
@@ -91,10 +92,13 @@ class UsersRepository(BaseEntity):
     
     def insert_user(self, params_new_user):
         query = "INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)"
+        
+        password_hashed = generate_password_hash(params_new_user["password"])
+        
         params = (
             params_new_user["name"], 
             params_new_user["surname"], 
-            params_new_user["password"], 
+            password_hashed, 
             params_new_user["email"], 
             params_new_user["status"], 
             params_new_user["role"]
@@ -131,3 +135,23 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query, params = params)
         self.conn.commit()
         return
+    
+    """ 
+    Function that check if a mail is valid on the database
+    returns the user if it exists
+    else returns None
+    """
+    def check_email(self, email):
+        query = "SELECT * FROM users u WHERE email = %s"
+        params = (email,)
+        
+        self.cursor.execute(query, params = params)
+        
+        user = self.cursor.fetchone()
+        
+        if user:
+            return user
+        
+        return None
+    
+        
