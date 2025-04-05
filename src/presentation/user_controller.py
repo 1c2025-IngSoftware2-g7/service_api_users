@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 from werkzeug.security import check_password_hash
@@ -316,7 +316,7 @@ class UserController:
                 "code_status": 400
             }
 
-        # 1. Autenticar al admin existente
+        # Autentica al admin existente
         admin = self.user_service.mail_exists(data["admin_email"])
         if not admin or not check_password_hash(admin[3], data["admin_password"]):
             return {
@@ -324,14 +324,14 @@ class UserController:
                 "code_status": 403
             }
 
-        # 2. Verificar que el autenticador sea admin
+        # Verifica que el autenticador sea admin
         if admin[6] != "admin":
             return {
                 "response": jsonify({"error": ADMIN_AUTH_FAILED}),
                 "code_status": 403
             }
 
-        # 3. Crear el nuevo admin (reutilizando lógica existente)
+        # Crea el nuevo admin
         new_user_data = {
             "name": data["name"],
             "surname": data["surname"],
@@ -360,3 +360,32 @@ class UserController:
                 "code_status": 500
             }
 
+
+    """
+    Login específico para administradores.
+    """
+    def login_admin(self, request):
+        login_result = self.login_users(request)
+
+        if login_result["code_status"] != 200:
+            return login_result
+
+        user_data = login_result["response"].get_json().get("data")
+
+        # Verifica si es admin
+        if user_data[6] == "admin":
+            return {
+                "response": jsonify({
+                    "message": ADMIN_LOGIN_SUCCESS,
+                    "data": user_data
+                }),
+                "code_status": 200
+            }
+        else:
+            return {
+                "response": jsonify({
+                    "error": ADMIN_LOGIN_FAILED,
+                    "detail": "User is not an admin"
+                }),
+                "code_status": 403
+            }
