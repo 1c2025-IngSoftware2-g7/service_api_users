@@ -8,7 +8,7 @@ in some cases, services.
 - User definition.
 """
 class User:
-    def __init__(self, uuid, name, surname, password, email, status, role):
+    def __init__(self, uuid, name, surname, password, email, status, role, location = None):
         # attributes
         self.uuid = uuid
         self.name = name
@@ -17,5 +17,6 @@ class User:
         self.email = email
         self.status = status
         self.role = role
+        self.location = location
         return
     

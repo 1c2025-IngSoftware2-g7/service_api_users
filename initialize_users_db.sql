@@ -44,3 +44,11 @@ CREATE TABLE IF NOT EXISTS users (
     status text,
     role text
 );
+
+-- Create the 'user_locations' table
+CREATE TABLE IF NOT EXISTS user_locations (
+    uuid UUID PRIMARY KEY,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    FOREIGN KEY (uuid) REFERENCES users(uuid) ON DELETE CASCADE
+);
