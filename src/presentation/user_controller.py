@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 from werkzeug.security import check_password_hash
@@ -223,7 +223,7 @@ class UserController:
                 missing_params.append(param)
                 
         if len(missing_params) > 0:
-            msg = f"Missing params: {", ".join(missing_params)}"
+            msg = f"Missing params: {', '.join(missing_params)}"
             self.log.error(msg)
             return False, msg
     
@@ -290,4 +290,73 @@ class UserController:
             "code_status": 400,
        }
 
+    """
+    Create an admin user.
+    Authenticates the requester as an admin via email/password.
+    """
+    def create_admin_user(self, request):
+        if not request.is_json:
+            return {
+                "response": jsonify({"error": BAD_REQUEST}),
+                "code_status": 400
+            }
+
+        data = request.get_json()
+        
+        required_fields = [
+            "admin_email", "admin_password",
+            "name", "surname", "email", "password"
+        ]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return {
+                "response": jsonify({
+                    "error": f"Missing fields: {', '.join(missing_fields)}"
+                }),
+                "code_status": 400
+            }
+
+        # 1. Autenticar al admin existente
+        admin = self.user_service.mail_exists(data["admin_email"])
+        if not admin or not check_password_hash(admin[3], data["admin_password"]):
+            return {
+                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "code_status": 403
+            }
+
+        # 2. Verificar que el autenticador sea admin
+        if admin[6] != "admin":
+            return {
+                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "code_status": 403
+            }
+
+        # 3. Crear el nuevo admin (reutilizando lógica existente)
+        new_user_data = {
+            "name": data["name"],
+            "surname": data["surname"],
+            "email": data["email"],
+            "password": data["password"],
+            "status": "active",
+            "role": "admin"
+        }
+
+        valid, msg = self._check_create_user_params(new_user_data)
+        if not valid:
+            return {
+                "response": jsonify({"error": msg}),
+                "code_status": 400
+            }
+
+        try:
+            self.user_service.create(new_user_data)
+            return {
+                "response": jsonify({"message": ADMIN_CREATED}),
+                "code_status": 201
+            }
+        except Exception as e:
+            return {
+                "response": jsonify({"error": str(e)}),
+                "code_status": 500
+            }
 

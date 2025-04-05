@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 import sys
 import os
 from pathlib import Path
@@ -52,12 +53,14 @@ def create_admin():
             print("\nError: Ya existe un administrador en el sistema", file=sys.stderr)
             sys.exit(1)
 
+        password_hashed = generate_password_hash(password)
+
         # Insertar
         admin_data = {
             "uuid": str(uuid.uuid4()),
             "name": name,
             "surname": surname,
-            "password": password,
+            "password": password_hashed,
             "email": email,
             "status": "active",
             "role": "admin"
