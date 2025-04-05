@@ -114,6 +114,16 @@ class UserController:
             user = request.get_json()
             self.log.debug(f"DEBUG: json in create_users -> {user}")
 
+            # Bloquea asignación manual de rol 'admin'
+            if user.get("role") == "admin":
+                return {
+                    "response": jsonify({
+                        "error": "Forbidden",
+                        "detail": "Use /users/admin endpoint to create admins"
+                    }),
+                    "code_status": 403
+                }
+
             result, msg = self._check_create_user_params(user)
             if result == False:
                 return {
