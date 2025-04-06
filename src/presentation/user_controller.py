@@ -1,9 +1,10 @@
-from flask import jsonify
+from flask import jsonify, session
 
 from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 from werkzeug.security import check_password_hash
+
 
 """ 
 The presentation layer contains all of the classes responsible for presenting the UI to the end-user 
@@ -11,6 +12,7 @@ or sending the response back to the client (in case we’re operating deep in th
 
 - It has serialization and deserialization logic. Validations. Authentication.
 """
+
 class UserController:
     def __init__(self, user_service: UserService, logger): 
         self.user_service = user_service
@@ -38,6 +40,12 @@ class UserController:
     Get all users.
     """
     def get_users(self):
+        
+        is_session_expired = self.is_session_valid()
+        
+        if is_session_expired:
+            return is_session_expired
+        
         users = self.user_service.get_users() # list of instance of Users() (domain)
         users = [self._serialize_user(user) for user in users]
         self.log.debug(f"DEBUG: in controller: users is {users}")
@@ -52,6 +60,12 @@ class UserController:
     Get specific user.
     """
     def get_specific_users(self, uuid):
+        
+        is_session_expired = self.is_session_valid()
+        
+        if is_session_expired:
+            return is_session_expired
+        
         user = self.user_service.get_specific_users(uuid) # instance of Users() (domain)
 
         if user:
@@ -248,7 +262,11 @@ class UserController:
             data = request.get_json()
             email = data["email"]
             password = data["password"]
-
+            
+            # We save the session for this email
+            session["user"] = email 
+            session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
+            
             mail_exists = self.user_service.mail_exists(email)  
 
             if mail_exists is None:
@@ -381,6 +399,7 @@ class UserController:
             return login_result
 
         user_data = login_result["response"].get_json().get("data")
+        session.permanent = False # This avoids the session to be saved for 5 minutes and keep it permanent
 
         # Verifica si es admin
         if user_data[6] == "admin":
@@ -399,3 +418,19 @@ class UserController:
                 }),
                 "code_status": 403
             }
+
+    """
+    Private function: This function checks if the session is still valid
+    In case it isnt valid, it will return a 401 error
+    else we return None
+    """
+    def is_session_valid(self):
+        if "user" not in session:
+            return {
+                "response": jsonify({
+                    "error": "Unauthorized",
+                    "detail": "Session expired"
+                }),
+                "code_status": 401
+            }
+        return None
