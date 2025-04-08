@@ -66,3 +66,25 @@ Login a user
 def login_users():
     result = user_controller.login_users(request)
     return result["response"], result["code_status"]
+
+
+"""
+Login a user with google
+"""
+@users_app.post("/users/login/google")
+def login_user_with_google():
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@users_app.route('/authorize')
+def authorize():
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    
+    # Aquí buscás al usuario en tu DB por email o lo creás si no existe
+    user_email = user_info['email']
+    
+    # Guardás en sesión
+    session['user'] = user_info
+    return jsonify(user_info)
