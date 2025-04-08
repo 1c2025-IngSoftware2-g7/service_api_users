@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 from werkzeug.security import check_password_hash
@@ -114,6 +114,16 @@ class UserController:
             user = request.get_json()
             self.log.debug(f"DEBUG: json in create_users -> {user}")
 
+            # Bloquea asignación manual de rol 'admin'
+            if user.get("role") == "admin":
+                return {
+                    "response": jsonify({
+                        "error": "Forbidden",
+                        "detail": "Use /users/admin endpoint to create admins"
+                    }),
+                    "code_status": 403
+                }
+
             result, msg = self._check_create_user_params(user)
             if result == False:
                 return {
@@ -225,7 +235,7 @@ class UserController:
                 missing_params.append(param)
                 
         if len(missing_params) > 0:
-            msg = f"Missing params: {", ".join(missing_params)}"
+            msg = f"Missing params: {', '.join(missing_params)}"
             self.log.error(msg)
             return False, msg
     
@@ -292,4 +302,102 @@ class UserController:
             "code_status": 400,
        }
 
+    """
+    Create an admin user.
+    Authenticates the requester as an admin via email/password.
+    """
+    def create_admin_user(self, request):
+        if not request.is_json:
+            return {
+                "response": jsonify({"error": BAD_REQUEST}),
+                "code_status": 400
+            }
 
+        data = request.get_json()
+        
+        required_fields = [
+            "admin_email", "admin_password",
+            "name", "surname", "email", "password"
+        ]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return {
+                "response": jsonify({
+                    "error": f"Missing fields: {', '.join(missing_fields)}"
+                }),
+                "code_status": 400
+            }
+
+        # Autentica al admin existente
+        admin = self.user_service.mail_exists(data["admin_email"])
+        if not admin or not check_password_hash(admin[3], data["admin_password"]):
+            return {
+                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "code_status": 403
+            }
+
+        # Verifica que el autenticador sea admin
+        if admin[6] != "admin":
+            return {
+                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "code_status": 403
+            }
+
+        # Crea el nuevo admin
+        new_user_data = {
+            "name": data["name"],
+            "surname": data["surname"],
+            "email": data["email"],
+            "password": data["password"],
+            "status": "active",
+            "role": "admin"
+        }
+
+        valid, msg = self._check_create_user_params(new_user_data)
+        if not valid:
+            return {
+                "response": jsonify({"error": msg}),
+                "code_status": 400
+            }
+
+        try:
+            self.user_service.create(new_user_data)
+            return {
+                "response": jsonify({"message": ADMIN_CREATED}),
+                "code_status": 201
+            }
+        except Exception as e:
+            return {
+                "response": jsonify({"error": str(e)}),
+                "code_status": 500
+            }
+
+
+    """
+    Login específico para administradores.
+    """
+    def login_admin(self, request):
+        login_result = self.login_users(request)
+
+        if login_result["code_status"] != 200:
+            return login_result
+
+        user_data = login_result["response"].get_json().get("data")
+
+        # Verifica si es admin
+        if user_data[6] == "admin":
+            return {
+                "response": jsonify({
+                    "message": ADMIN_LOGIN_SUCCESS,
+                    "data": user_data
+                }),
+                "code_status": 200
+            }
+        else:
+            return {
+                "response": jsonify({
+                    "error": ADMIN_LOGIN_FAILED,
+                    "detail": "User is not an admin"
+                }),
+                "code_status": 403
+            }

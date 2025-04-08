@@ -50,6 +50,7 @@ def add_users():
     result = user_controller.create_users(request)
     return result["response"], result["code_status"]
 
+
 """
 Add user location.
 """
@@ -65,4 +66,22 @@ Login a user
 @users_app.post("/users/login")
 def login_users():
     result = user_controller.login_users(request)
+    return result["response"], result["code_status"]
+
+
+"""
+Create an admin
+"""
+@users_app.post("/users/admin")
+def add_admin():
+    result = user_controller.create_admin_user(request)
+    return result["response"], result["code_status"]
+
+
+"""
+Login de administrador.
+"""
+@users_app.post("/users/admin/login")
+def login_admin():
+    result = user_controller.login_admin(request)
     return result["response"], result["code_status"]

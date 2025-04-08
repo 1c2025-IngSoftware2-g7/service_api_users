@@ -61,3 +61,14 @@ docker compose up
 
 En ```docker-compose.yml```:
 - app: API RESTful en Flask. Se utiliza como imagen la definida en Dockerfile. Se indica el puerto 8080 para comunicarse con este servicio y se incluye en la misma red que la base de datos, de esta forma se pueden comunicar. Además, se define que este servicio se va a correr cuando se termine de levantar la base de datos. Por último, se indica el comando que se va a correr.
+
+## 8. Comandos para crear el primer administrador
+Con el servicio levantado se debe correr desde root:
+```bash
+docker compose exec app python /create_first_admin.py
+```
+
+Se solicitara los datos del administrador y se creara el primer perfil con autorizaciones de "admin". Luego ya no se podrá volver a crear un administrador de esta forma. También se puede verificar que se creo el registro correctamente con:
+```bash
+docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM users WHERE role='admin';"
+```
