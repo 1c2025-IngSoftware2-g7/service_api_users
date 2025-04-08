@@ -1,15 +1,22 @@
+from datetime import timedelta
 import logging
 import os
 from flask import Flask, request
-
+from flask_cors import CORS
 from app_factory import AppFactory
 
+
 users_app = Flask(__name__)
+CORS(users_app)
+
+# Session config
+users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
+users_app.permanent_session_lifetime = timedelta(minutes=5)
+
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
 users_logger = users_app.logger
-
 user_controller = AppFactory.create(users_logger)
 
 
