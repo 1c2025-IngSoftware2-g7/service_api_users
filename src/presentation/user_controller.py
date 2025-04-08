@@ -1,6 +1,6 @@
 from flask import jsonify, session
 
-from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
+from headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, USER_ALREADY_EXISTS, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
 from src.application.user_service import UserService
 from src.infrastructure.persistence.users_repository import UsersRepository
 from werkzeug.security import check_password_hash
@@ -153,6 +153,23 @@ class UserController:
                     "code_status": 400,
                 } 
             
+            # HOTFIX we cannot create a user with the same email
+            mail_exists = self.user_service.mail_exists(user["email"])
+            
+            if mail_exists is not None:
+                return {
+                    "response": jsonify(
+                        {
+                            "type": "about:blank",
+                            "title": USER_ALREADY_EXISTS,
+                            "status": 0,
+                            "detail": f"The email {user['email']} already exists",
+                            "instance": f"/users",
+                        }
+                    ),
+                    "code_status": 409,
+                }
+                
             self.user_service.create(user)
             return {
                 "response": jsonify({"data": user}),
@@ -264,11 +281,7 @@ class UserController:
             data = request.get_json()
             email = data["email"]
             password = data["password"]
-            
-            # We save the session for this email
-            session["user"] = email 
-            session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
-            
+                        
             mail_exists = self.user_service.mail_exists(email)  
 
             if mail_exists is None:
@@ -288,6 +301,10 @@ class UserController:
             user_password = mail_exists[3] # this access the password
             if check_password_hash(user_password, password):
                 # Do we need to return the user? . to ask
+                # We save the session for this email
+                session["user"] = email 
+                session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
+                
                 return {
                     # Mail exists contain the user data.
                     "response": jsonify({"data": mail_exists}),
