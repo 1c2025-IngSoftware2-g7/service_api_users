@@ -96,7 +96,7 @@ class UserController:
     def delete_specific_users(self, uuid):
         self.log.debug(f"DEBUG: self.get_specific_users(uuid) delete -> {self.get_specific_users(uuid)}")
 
-        if self.get_specific_users(uuid)["code_status"] == 204:
+        if self.get_specific_users(uuid)["code_status"] == 200:
             self.user_service.delete(uuid)
             return {
                 "response": jsonify({"result": DELETE}), 
@@ -194,7 +194,9 @@ class UserController:
                 "code_status": 400,
             } 
 
-        if self.get_specific_users(user_id)["code_status"] == 204:
+        self.log.debug(f"DEBUG: self.get_specific_users(user_id) is {self.get_specific_users(user_id)}")
+
+        if self.get_specific_users(user_id)["code_status"] == 200:
             self.log.debug("User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {

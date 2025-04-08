@@ -6,12 +6,18 @@ class DatabaseConfig:
     user: str
     password: str
 
+    """
+    Order of precedence of variables:
+    - Production: This uses the cloud deployment environment variables. 
+    - Local: This uses local variables (.env).
+    """
     def __init__(self):
-        self.database = os.getenv("DATABASE_NAME")
-        self.user = os.getenv("DATABASE_USER")
-        self.host = os.getenv("DATABASE_HOST")
-        self.password = os.getenv("DATABASE_PASSWORD")
+        self.database = os.environ.get("DB_NAME")
+        self.user = os.environ.get("DB_USER")
+        self.host = os.environ.get("DB_HOST")
+        self.password = os.environ.get("DB_PASSWORD")
+        self.port = os.environ.get("DB_PORT")
 
     @property
     def connection_strings(self) -> str:
-        return f"dbname={self.database} user={self.user} host={self.host} password={self.password}"
+        return f"dbname={self.database} user={self.user} host={self.host} password={self.password} port={self.port}"
