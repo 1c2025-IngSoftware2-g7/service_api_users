@@ -2,6 +2,9 @@ from werkzeug.security import generate_password_hash
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 current_dir = Path(__file__).parent
 src_dir = current_dir.parent / "src"
@@ -33,17 +36,9 @@ def create_admin():
         print("\nError: Todos los campos son obligatorios", file=sys.stderr)
         sys.exit(1)
 
-    db_config = {
-        "host": "db",
-        "database": "classconnect_users",
-        "user": "user_db",
-        "password": "classconect-users",
-        "port": "5432"
-    }
-
     # Base de datos
     try:
-        conn_str = f"host={db_config['host']} dbname={db_config['database']} user={db_config['user']} password={db_config['password']} port={db_config['port']}"
+        conn_str = DatabaseConfig().connection_strings
         conn = psycopg.connect(conn_str)
         cursor = conn.cursor()
 
