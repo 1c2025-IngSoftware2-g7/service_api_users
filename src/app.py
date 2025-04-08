@@ -11,7 +11,7 @@ CORS(users_app)
 
 # Session config
 users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
-users_app.permanent_session_lifetime = timedelta(minutes=5)
+users_app.permanent_session_lifetime = timedelta(minutes=5) 
 
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO

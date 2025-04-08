@@ -2,7 +2,7 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER: user_db
       POSTGRES_PASSWORD: classconect-users
       POSTGRES_DB: classconnect_users
     ports:
