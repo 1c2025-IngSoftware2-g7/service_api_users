@@ -1,18 +1,20 @@
--- Create the user only if it does not exist
-DO $$
+-- Crear el usuario solo si no existe
+DO
+$$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'user_db') THEN
-        CREATE USER user_db WITH PASSWORD 'classconect-users';
-    END IF;
+   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'user_db') THEN
+      CREATE USER user_db WITH PASSWORD 'classconect-users';
+   END IF;
 END
 $$;
 
--- Create the database only if it does not exist
-DO $$
+-- Crear la base de datos solo si no existe
+DO
+$$
 BEGIN
-    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'classconnect_users') THEN
-        CREATE DATABASE classconnect_users;
-    END IF;
+   IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'classconnect_users') THEN
+      CREATE DATABASE classconnect_users;
+   END IF;
 END
 $$;
 
