@@ -26,7 +26,7 @@ services:
       - users_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 5s
+      interval: 60s
       timeout: 2s
       retries: 10
 

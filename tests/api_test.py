@@ -73,7 +73,12 @@ def wait_for_app():
 
 
 def test_get_users_without_users(response_without_users):
+    print("FLASK_ENV:", os.getenv("FLASK_ENV"))
+
     wait_for_app()
+
+    print("FLASK_ENV:", os.getenv("FLASK_ENV"))
+
 
     response = requests.get("http://app:8080/users")
     response_data = response.json()
