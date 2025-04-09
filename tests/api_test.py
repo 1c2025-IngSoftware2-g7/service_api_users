@@ -67,3 +67,4 @@ def test_get_users_without_users(response_without_users):
 
     assert response.status_code == 200
     assert response_without_users == response_data
+
