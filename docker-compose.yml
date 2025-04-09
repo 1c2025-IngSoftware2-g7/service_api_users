@@ -24,6 +24,11 @@ services:
       - db
     networks:
       - users_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/users"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
 
   test:
     build: .
@@ -31,15 +36,17 @@ services:
       - FLASK_ENV=testing
       - PYTHONPATH=/src/app
     depends_on:
-      - db
-      - app
+      db:
+        condition: service_started
+      app:
+        condition: service_healthy
     networks:
       - users_network
     command: pytest --cov=src --cov-report=xml:/coverage/coverage.xml tests/
-    env_file:
-      - .env
     volumes:
       - ./coverage:/coverage
+    env_file:
+      - .env
 
 networks:
   users_network:
