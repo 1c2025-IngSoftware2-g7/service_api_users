@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    uses: 1c2025-IngSoftware2-g7/ci_templates/.github/workflows/deploy-render.yml@refs/heads/main
+    uses: 1c2025-IngSoftware2-g7/ci_templates/.github/workflows/python-app.yml@refs/heads/main
     with:
       python-version: '3.13'
       coverage-folder: 'src'
