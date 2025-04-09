@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    uses: 1c2025-IngSoftware2-g7/ci_templates/templates/deploy-render.yml@main
+    uses: 1c2025-IngSoftware2-g7/ci_templates/.github/workflows/deploy-render.yml@main
     with:
       render-webhook-url: ${{ secrets.RENDER_HOOK }}
     secrets:
