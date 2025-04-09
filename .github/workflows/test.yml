@@ -13,5 +13,3 @@ jobs:
       coverage-folder: 'src'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
