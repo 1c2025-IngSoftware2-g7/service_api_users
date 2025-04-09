@@ -1,12 +1,14 @@
-from src.headers import BAD_REQUEST, NOT_USER
-
 import pytest
 import requests
 import uuid
 import os
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
+
+NOT_USER = "User not found"
+BAD_REQUEST = "Bad request error"
 
 @pytest.fixture
 def not_user_id():
@@ -58,11 +60,22 @@ def not_user_response(not_user_id):
         "instance": f"/users/{not_user_id}",
     }
 
+def wait_for_app():
+    for _ in range(10):
+        try:
+            r = requests.get("http://app:8080/users")
+            if r.status_code == 200:
+                return
+        except:
+            pass
+        time.sleep(1)
+    raise Exception("app no está lista")
+
 
 def test_get_users_without_users(response_without_users):
-    url = f"{os.getenv("URL")}"
+    wait_for_app()
 
-    response = requests.get(url)
+    response = requests.get("http://app:8080/users")
     response_data = response.json()
 
     assert response.status_code == 200
