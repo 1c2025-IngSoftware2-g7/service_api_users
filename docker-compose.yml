@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - courses_network
+      - users_network
     volumes:
       - ./initialize_users_db.sql:/docker-entrypoint-initdb.d/initialize_users_db.sql
 
@@ -23,19 +23,22 @@ services:
     depends_on:
       - db
     networks:
-      - courses_network
+      - users_network
 
   test:
     build: .
-    depends_on:
-      app:
-        condition: service_started
-    command: pytest
     environment:
-      PYTHONPATH: /src
+      - FLASK_ENV=testing
+      - PYTHONPATH=/src/app
+    depends_on:
+      - db
+      - app
+    networks:
+      - users_network
+    command: pytest tests/
     env_file:
-      - .env.test
+      - .env
 
 networks:
-  courses_network:
+  users_network:
     driver: bridge
