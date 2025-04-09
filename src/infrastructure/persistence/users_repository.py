@@ -154,4 +154,3 @@ class UsersRepository(BaseEntity):
         
         return None
     
-        
