@@ -25,6 +25,17 @@ services:
     networks:
       - courses_network
 
+  test:
+    build: .
+    depends_on:
+      app:
+        condition: service_started
+    command: pytest
+    environment:
+      PYTHONPATH: /src
+    env_file:
+      - .env.test
+
 networks:
   courses_network:
     driver: bridge
