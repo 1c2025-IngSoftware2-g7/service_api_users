@@ -11,4 +11,3 @@ jobs:
       render-webhook-url: ${{ secrets.RENDER_HOOK }}
     secrets:
       FLASK_APP: src.app:users_app
-      RENDER_HOOK: ${{ secrets.RENDER_HOOK }}
