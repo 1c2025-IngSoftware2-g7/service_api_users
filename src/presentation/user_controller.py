@@ -279,12 +279,18 @@ class UserController:
     def login_users(self, request):
         if request.is_json:
             data = request.get_json()
-            email = data["email"]
-            password = data["password"]
+             
+            email = data['email'] # This contains mail 
+            password = data['password'] # This contains password
+            
+            self.log.debug(f"DEBUG: email is {email}")
+            self.log.debug(f"DEBUG: password is {password}")
                         
-            mail_exists = self.user_service.mail_exists(email)  
+            # Check if the email and password are in the request
+            # If this exists, this bring us the id of the user
+            user_exists = self.user_service.mail_exists(email)
 
-            if mail_exists is None:
+            if user_exists is None:
                 return {
                     "response": jsonify(
                         {
@@ -297,17 +303,23 @@ class UserController:
                     ),
                     "code_status": 404,
                 }
-
-            user_password = mail_exists[3] # this access the password
-            if check_password_hash(user_password, password):
+                            
+            user_serialized_from_db = self.user_service.get_specific_users(user_exists) # we get the instance
+            user_serialized_from_db = self._serialize_user(user_serialized_from_db) # Serialize the instance
+            
+            self.log.debug(f"DEBUG: user_serialized_from_db is {user_serialized_from_db}")
+            
+            if check_password_hash(user_serialized_from_db['password'], password):
                 # Do we need to return the user? . to ask
                 # We save the session for this email
                 session["user"] = email 
-                session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
+                #session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
                 
+                self.log.debug(f"DEBUG: User {email} logged in")
+                self.log.debug(f"DEBUG: session is {session}")
                 return {
                     # Mail exists contain the user data.
-                    "response": jsonify({"data": mail_exists}),
+                    "response": jsonify({"data": user_serialized_from_db}),
                     "code_status": 200
                 }
             else:
