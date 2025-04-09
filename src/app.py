@@ -13,6 +13,11 @@ users_logger = users_app.logger
 user_controller = AppFactory.create(users_logger)
 
 
+@users_app.get("/health")
+def health_check():
+    return {"status": "ok"}, 200
+
+
 @users_app.before_request
 def skip_auth_for_testing():
     if os.getenv("FLASK_ENV") == "testing":
