@@ -11,3 +11,7 @@ jobs:
     with:
       python-version: '3.13'
       coverage-folder: 'src'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -35,9 +35,11 @@ services:
       - app
     networks:
       - users_network
-    command: pytest tests/
+    command: pytest --cov=src --cov-report=xml:/coverage/coverage.xml tests/
     env_file:
       - .env
+    volumes:
+      - ./coverage:/coverage
 
 networks:
   users_network:
