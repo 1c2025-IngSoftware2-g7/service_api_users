@@ -11,6 +11,12 @@
 
 ## 1. Introducción
 
+## 2. CI
+
+### Test coverage
+
+[![codecov](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users/branch/<RAMA>/graph/badge.svg)](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users)
+
 ## 3. Pre-requisitos
 - Necesario para levantar el entorno de desarrollo:
     - [Docker](https://docs.docker.com/get-started/introduction/) (version 27.3.1) 
@@ -34,6 +40,7 @@ Adicionalmente, menciono a continuación lo utilizado dentro de los contenedores
 ## 4. Tests
 Para la implementación de los test de integración, se utilizó la librería [pytest](https://www.psycopg.org/psycopg3/docs/basic/index.html).  
 Estos se encuentran desarrollados en ```./src/test/api_test.py```.  
+
 
 ## 5. Comandos para construir la imagen de Docker
 Al utilizar docker-compose, se puede construir todas las imágenes definidas en docker-compose.yml con el siguiente comando:
