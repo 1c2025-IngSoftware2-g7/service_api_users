@@ -83,3 +83,13 @@ def test_get_users_without_users(response_without_users):
     assert response.status_code == 200
     assert response_without_users == response_data
 
+@pytest.fixture
+def client():
+    from src.app import users_app
+    with users_app.test_client() as client:
+        yield client
+
+def test_get_users_empty(client):
+    response = client.get("/users")
+    assert response.status_code == 200
+    assert response.json == {"data": []}
