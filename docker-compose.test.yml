@@ -15,7 +15,7 @@ services:
   app:
     build: .
     environment:
-      - FLASK_ENV=development
+      - FLASK_ENV=testing
       - FLASK_APP=src.app:users_app
       - PYTHONPATH=/src
     ports:
@@ -34,7 +34,7 @@ services:
     build: .
     environment:
       - FLASK_ENV=testing
-      - PYTHONPATH=/src/app
+      - PYTHONPATH=/
     depends_on:
       db:
         condition: service_started

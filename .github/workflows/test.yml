@@ -1,0 +1,15 @@
+name: Test API Users
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    uses: 1c2025-IngSoftware2-g7/ci_templates/.github/workflows/python-app.yml@main
+    with:
+      python-version: '3.13'
+      coverage-folder: 'src'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

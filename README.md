@@ -11,6 +11,12 @@
 
 ## 1. Introducción
 
+## 2. CI
+
+### Test coverage
+
+[![codecov](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users/branch/<RAMA>/graph/badge.svg)](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users)
+
 ## 3. Pre-requisitos
 - Necesario para levantar el entorno de desarrollo:
     - [Docker](https://docs.docker.com/get-started/introduction/) (version 27.3.1) 
@@ -34,6 +40,7 @@ Adicionalmente, menciono a continuación lo utilizado dentro de los contenedores
 ## 4. Tests
 Para la implementación de los test de integración, se utilizó la librería [pytest](https://www.psycopg.org/psycopg3/docs/basic/index.html).  
 Estos se encuentran desarrollados en ```./src/test/api_test.py```.  
+
 
 ## 5. Comandos para construir la imagen de Docker
 Al utilizar docker-compose, se puede construir todas las imágenes definidas en docker-compose.yml con el siguiente comando:
@@ -61,3 +68,14 @@ docker compose up
 
 En ```docker-compose.yml```:
 - app: API RESTful en Flask. Se utiliza como imagen la definida en Dockerfile. Se indica el puerto 8080 para comunicarse con este servicio y se incluye en la misma red que la base de datos, de esta forma se pueden comunicar. Además, se define que este servicio se va a correr cuando se termine de levantar la base de datos. Por último, se indica el comando que se va a correr.
+
+## 8. Comandos para crear el primer administrador
+Con el servicio levantado se debe correr desde root:
+```bash
+docker compose exec app python /create_first_admin.py
+```
+
+Se solicitara los datos del administrador y se creara el primer perfil con autorizaciones de "admin". Luego ya no se podrá volver a crear un administrador de esta forma. También se puede verificar que se creo el registro correctamente con:
+```bash
+docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM users WHERE role='admin';"
+```

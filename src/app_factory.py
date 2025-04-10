@@ -1,6 +1,6 @@
-from application.user_service import UserService
-from infrastructure.persistence.users_repository import UsersRepository
-from presentation.user_controller import UserController
+from src.application.user_service import UserService
+from src.infrastructure.persistence.users_repository import UsersRepository
+from src.presentation.user_controller import UserController
 
 """Each class is instantiate: presentation, infrastructure, controller."""
 class AppFactory:

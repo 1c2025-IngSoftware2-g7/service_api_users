@@ -1,6 +1,6 @@
-from domain.location import Location
-from infrastructure.config.db_config import DatabaseConfig
-from infrastructure.persistence.base_entity import BaseEntity
+from src.domain.location import Location
+from src.infrastructure.config.db_config import DatabaseConfig
+from src.infrastructure.persistence.base_entity import BaseEntity
 from src.domain.user import User
 from werkzeug.security import generate_password_hash
 
@@ -138,7 +138,7 @@ class UsersRepository(BaseEntity):
     
     """ 
     Function that check if a mail is valid on the database
-    returns the user if it exists
+    returns the id of the user if it exists
     else returns None
     """
     def check_email(self, email):
@@ -150,8 +150,8 @@ class UsersRepository(BaseEntity):
         user = self.cursor.fetchone()
         
         if user:
-            return user
+            id = user[0] # We get the ID and we return it as STR
+            return id
         
         return None
     
-        

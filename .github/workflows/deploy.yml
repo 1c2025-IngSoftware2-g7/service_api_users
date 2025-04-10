@@ -1,0 +1,12 @@
+name: Deploy API Users
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    uses: 1c2025-IngSoftware2-g7/ci_templates/.github/workflows/deploy-render.yml@main
+    secrets:
+      FLASK_APP: src.app:users_app
+      RENDER_WEBHOOK_URL: ${{ secrets.RENDER_HOOK }}
