@@ -77,9 +77,8 @@ def test_get_users_without_users(response_without_users):
 
     response = requests.get("http://app:8080/users")
     print("response:", response)
-    response = requests.get("http://localhost:8080/users")
-    print("response:", response)
     response_data = response.json()
+    print("response_data:", response_data)
 
     assert response.status_code == 200
     assert response_without_users == response_data
