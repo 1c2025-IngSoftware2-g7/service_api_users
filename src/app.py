@@ -3,7 +3,7 @@ import logging
 import os
 from flask import Flask, request
 from flask_cors import CORS
-from app_factory import AppFactory
+from src.app_factory import AppFactory
 
 
 users_app = Flask(__name__)

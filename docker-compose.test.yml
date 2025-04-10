@@ -34,7 +34,7 @@ services:
     build: .
     environment:
       - FLASK_ENV=testing
-      - PYTHONPATH=/src/app
+      - PYTHONPATH=/
     depends_on:
       db:
         condition: service_started
