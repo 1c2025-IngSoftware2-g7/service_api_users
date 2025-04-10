@@ -9,10 +9,6 @@ from app_factory import AppFactory
 users_app = Flask(__name__)
 CORS(users_app)
 
-# Session config
-users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
-users_app.permanent_session_lifetime = timedelta(minutes=5) 
-
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
@@ -27,10 +23,12 @@ def health_check():
 
 @users_app.before_request
 def skip_auth_for_testing():
-    if os.getenv("FLASK_ENV") == "testing":
-        return  # Skip auth in testing environment
-    
-    # Auth logic would go here
+    if env == "testing":
+        users_logger.debug("In TEST, without session expiration")
+        return
+    else:
+        users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
+        users_app.permanent_session_lifetime = timedelta(minutes=5) 
 
 
 """
