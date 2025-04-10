@@ -18,7 +18,7 @@ users_app.permanent_session_lifetime = timedelta(minutes=5)
 # OAuth config
 oauth = OAuth(users_app)
 
-# Login config
+# Logger config
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
