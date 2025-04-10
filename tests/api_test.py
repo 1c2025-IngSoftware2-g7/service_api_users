@@ -76,6 +76,9 @@ def test_get_users_without_users(response_without_users):
     print("FLASK_ENV:", os.getenv("FLASK_ENV"))
 
     response = requests.get("http://app:8080/users")
+    print("response:", response)
+    response = requests.get("http://localhost:8080/users")
+    print("response:", response)
     response_data = response.json()
 
     assert response.status_code == 200
