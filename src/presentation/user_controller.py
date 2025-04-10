@@ -472,3 +472,32 @@ class UserController:
                 "code_status": 401
             }
         return None
+
+    """
+    Login a user with google
+    """
+    def login_user_with_google(self):
+        return self.user_service.login_user_with_google()
+
+
+    def authorize(self):
+        user_info = self.user_service.authorize()
+        if user_info:
+            user = self.user_service.create_users_if_not_exist(user_info)
+            
+            user_email = user['email']
+            session['user'] = user_email
+            return jsonify(user)
+        
+        return {
+            "response": jsonify(
+                {
+                    "type": "about:blank",
+                    "title": NOT_USER,
+                    "status": 0,
+                    "detail": f"User not authorized by Google",
+                    "instance": f"/users/authorize",
+                }
+            ),
+            "code_status": 404,
+        }

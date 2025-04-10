@@ -2,7 +2,9 @@ from datetime import timedelta
 import logging
 import os
 from flask import Flask, request
+from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
+
 from src.app_factory import AppFactory
 
 
@@ -13,11 +15,17 @@ CORS(users_app)
 users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
 users_app.permanent_session_lifetime = timedelta(minutes=5) 
 
+# OAuth config
+oauth = OAuth(users_app)
+
+# Login config
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
 users_logger = users_app.logger
-user_controller = AppFactory.create(users_logger)
+
+# Create layers
+user_controller = AppFactory.create(users_logger, oauth)
 
 
 @users_app.get("/health")
@@ -91,7 +99,7 @@ def add_admin():
 
 
 """
-Login de administrador.
+Login an admin.
 """
 @users_app.post("/users/admin/login")
 def login_admin():
@@ -104,18 +112,11 @@ Login a user with google
 """
 @users_app.post("/users/login/google")
 def login_user_with_google():
-    redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    result = user_controller.login_user_with_google()
+    return result["response"], result["code_status"]
 
-@users_app.route('/authorize')
+
+@users_app.route('/users/authorize')
 def authorize():
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    
-    # Aquí buscás al usuario en tu DB por email o lo creás si no existe
-    user_email = user_info['email']
-    
-    # Guardás en sesión
-    session['user'] = user_info
-    return jsonify(user_info)
+    result = user_controller.authorize()
+    return result["response"], result["code_status"]

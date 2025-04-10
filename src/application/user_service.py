@@ -1,3 +1,4 @@
+from src.application.google_service import GoogleService
 from src.infrastructure.persistence.users_repository import UsersRepository
 
 """ 
@@ -14,7 +15,8 @@ This layer can include:
 - Communicates with the repository layer, which can return a User domain
 """
 class UserService:
-    def __init__(self, user_repository: UsersRepository, logger):
+    def __init__(self, user_repository: UsersRepository, google, logger):
+        self.google = google
         self.log = logger
         self.user_repository = user_repository
 
@@ -65,3 +67,24 @@ class UserService:
     def mail_exists(self, email):
         return self.user_repository.check_email(email)
 
+    """
+    Login a user with google
+    """
+    def login_user_with_google(self):
+        return self.google.authorize_redirect()
+    
+    def authorize(self):
+        token = self.google.authorize_access_token()
+        resp = self.google.get('userinfo')
+        return resp.json()
+        
+    
+    def create_users_if_not_exist(self, user_info):
+        user = self.user_repository.get_user_with_email(user_info['email'])
+        if user:
+            return user
+    
+        self.log.info(f"User does not exist. Create user with the following parameters: {user_info}")
+        
+        self.user_repository.insert_user(user_info)
+        return user_info

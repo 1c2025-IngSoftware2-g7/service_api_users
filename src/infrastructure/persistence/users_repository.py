@@ -11,7 +11,7 @@ class UsersRepository(BaseEntity):
 
 
     def _parse_user(self, user_params):
-        self.log.debug(f"DEBUG: user_params is {user_params}")
+        self.log.debug(f"user_params is {user_params}")
 
         location = None
         if "location" in user_params and user_params["location"] is not None:
@@ -84,6 +84,34 @@ class UsersRepository(BaseEntity):
         ) AS user_data;
         """
         params = (str(user_id),)
+        self.cursor.execute(query, params = params)
+        user = self.cursor.fetchone()
+        if not user:
+            return user
+        return self._parse_user(user[0])
+    
+    def get_user_with_email(self, email):
+        query = """
+        SELECT ROW_TO_JSON(user_data) 
+        FROM (
+            SELECT 
+                u.uuid,
+                u.name,
+                u.surname,
+                u.password,
+                u.email,
+                u.status,
+                u.role,
+                JSON_BUILD_OBJECT(
+                    'latitude', l.latitude,
+                    'longitude', l.longitude
+                ) AS location
+            FROM users u
+            LEFT JOIN user_locations l ON u.uuid = l.uuid
+            WHERE u.email = %s
+        ) AS user_data;
+        """
+        params = (str(email),)
         self.cursor.execute(query, params = params)
         user = self.cursor.fetchone()
         if not user:
