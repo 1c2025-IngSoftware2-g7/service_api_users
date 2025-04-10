@@ -23,10 +23,12 @@ def health_check():
 
 @users_app.before_request
 def skip_auth_for_testing():
+    users_logger.info(f"FLASK_ENV: {env}")
     if env == "testing":
-        users_logger.debug("In TEST, without session expiration")
+        users_logger.info("In TEST, without session expiration")
         return
     else:
+        users_logger.info("With session expiration")
         users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
         users_app.permanent_session_lifetime = timedelta(minutes=5) 
 

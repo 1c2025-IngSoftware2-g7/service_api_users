@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: user_db
+      POSTGRES_PASSWORD: classconect-users
+      POSTGRES_DB: classconnect_users
+    ports:
+      - "5432:5432"
+    networks:
+      - users_network
+    volumes:
+      - ./initialize_users_db.sql:/docker-entrypoint-initdb.d/initialize_users_db.sql
+
+  app:
+    build: .
+    environment:
+      - FLASK_ENV=testing
+      - FLASK_APP=src.app:users_app
+      - PYTHONPATH=/src
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - users_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 60s
+      timeout: 2s
+      retries: 10
+
+  test:
+    build: .
+    environment:
+      - FLASK_ENV=testing
+      - PYTHONPATH=/src/app
+    depends_on:
+      db:
+        condition: service_started
+      app:
+        condition: service_healthy
+    networks:
+      - users_network
+    command: pytest --cov=src --cov-report=xml:/coverage/coverage.xml tests/
+    volumes:
+      - ./coverage:/coverage
+    env_file:
+      - .env
+
+networks:
+  users_network:
+    driver: bridge
