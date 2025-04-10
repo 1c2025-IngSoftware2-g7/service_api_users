@@ -5,10 +5,11 @@ import os
 import time
 from dotenv import load_dotenv
 
+from src.app import users_app
+from src.headers import BAD_REQUEST, NOT_USER
+
 load_dotenv()
 
-NOT_USER = "User not found"
-BAD_REQUEST = "Bad request error"
 
 @pytest.fixture
 def not_user_id():
@@ -85,7 +86,6 @@ def test_get_users_without_users(response_without_users):
 
 @pytest.fixture
 def client():
-    from src.app import users_app
     with users_app.test_client() as client:
         yield client
 

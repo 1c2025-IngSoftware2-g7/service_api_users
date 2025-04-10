@@ -1,6 +1,6 @@
-from domain.location import Location
-from infrastructure.config.db_config import DatabaseConfig
-from infrastructure.persistence.base_entity import BaseEntity
+from src.domain.location import Location
+from src.infrastructure.config.db_config import DatabaseConfig
+from src.infrastructure.persistence.base_entity import BaseEntity
 from src.domain.user import User
 from werkzeug.security import generate_password_hash
 

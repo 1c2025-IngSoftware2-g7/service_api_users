@@ -1,18 +1,8 @@
 from werkzeug.security import generate_password_hash
 import sys
-import os
-from pathlib import Path
-from dotenv import load_dotenv
 
-load_dotenv()
-
-current_dir = Path(__file__).parent
-src_dir = current_dir.parent / "src"
-sys.path.insert(0, str(src_dir))
-
-from infrastructure.config.db_config import DatabaseConfig
+from src.infrastructure.config.db_config import DatabaseConfig
 import psycopg
-from domain.user import User
 import uuid
 import getpass
 
