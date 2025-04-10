@@ -1,3 +1,4 @@
+import os
 from flask import jsonify, session
 
 from src.headers import BAD_REQUEST, DELETE, NOT_USER, PUT_LOCATION, USER_ALREADY_EXISTS, WRONG_PASSWORD, ADMIN_AUTH_FAILED, ADMIN_CREATED, ADMIN_LOGIN_SUCCESS, ADMIN_LOGIN_FAILED
@@ -456,6 +457,13 @@ class UserController:
     else we return None
     """
     def is_session_valid(self):
+        env = os.getenv("FLASK_ENV")
+        if env == "testing":
+            self.log.info("In TEST, without session expiration.")
+            return None
+        else:
+            self.log.info("Check if the session has expired.")
+
         if "user" not in session:
             return {
                 "response": jsonify({

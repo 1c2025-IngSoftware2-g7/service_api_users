@@ -20,6 +20,11 @@ users_logger = users_app.logger
 user_controller = AppFactory.create(users_logger)
 
 
+@users_app.get("/health")
+def health_check():
+    return {"status": "ok"}, 200
+
+
 """
 Get all users.
 """
