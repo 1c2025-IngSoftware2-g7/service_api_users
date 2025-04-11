@@ -116,10 +116,12 @@ Ex: '?role=student' or '?role=teacher'.
 """
 @users_app.get("/users/login/google")
 def login_user_with_google():
+    users_logger.info(f"In /users/login/google with request: {request}")
     return user_controller.login_user_with_google(request)
 
 
 @users_app.get('/users/authorize')
 def authorize():
+    users_logger.info(f"In /users/authorize with request: {request}")
     result = user_controller.authorize(request)
     return result["response"], result["code_status"]

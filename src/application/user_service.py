@@ -71,15 +71,18 @@ class UserService:
     Login a user with google
     """
     def login_user_with_google(self, role):
+        self.log.info(f"In service - login_user_with_google - role: {role}")
         return self.google.authorize_redirect(role)
     
     def authorize(self):
         token = self.google.authorize_access_token()
+        self.log.info(f"In service - authorize - token: {token}")
         return self.google.get_user_info()
         
     
     def create_users_if_not_exist(self, user_info):
         user = self.user_repository.get_user_with_email(user_info['email'])
+        self.log.info(f"In service - create_users_if_not_exist - user: {user}")
         if user:
             return user
     
