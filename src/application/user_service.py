@@ -70,13 +70,12 @@ class UserService:
     """
     Login a user with google
     """
-    def login_user_with_google(self):
-        return self.google.authorize_redirect()
+    def login_user_with_google(self, role):
+        return self.google.authorize_redirect(role)
     
     def authorize(self):
         token = self.google.authorize_access_token()
-        resp = self.google.get('userinfo')
-        return resp.json()
+        return self.google.get_user_info()
         
     
     def create_users_if_not_exist(self, user_info):

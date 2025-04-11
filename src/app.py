@@ -108,15 +108,18 @@ def login_admin():
 
 
 """
-Login a user with google
+Login a user with google.
+
+"role" query param is needed. 
+Default: student.
+Ex: '?role=student' or '?role=teacher'.
 """
-@users_app.post("/users/login/google")
+@users_app.get("/users/login/google")
 def login_user_with_google():
-    result = user_controller.login_user_with_google()
-    return result["response"], result["code_status"]
+    return user_controller.login_user_with_google(request)
 
 
-@users_app.route('/users/authorize')
+@users_app.get('/users/authorize')
 def authorize():
-    result = user_controller.authorize()
+    result = user_controller.authorize(request)
     return result["response"], result["code_status"]

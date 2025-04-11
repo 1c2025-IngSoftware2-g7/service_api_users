@@ -476,18 +476,25 @@ class UserController:
     """
     Login a user with google
     """
-    def login_user_with_google(self):
-        return self.user_service.login_user_with_google()
+    def login_user_with_google(self, request):
+        role = request.args.get("role", "student")
+        return self.user_service.login_user_with_google(role)
 
 
-    def authorize(self):
+    def authorize(self, request):
         user_info = self.user_service.authorize()
+        
         if user_info:
+            user_info["role"] = request.args.get("state", "student") 
+            user_info["status"] = "enabled"
             user = self.user_service.create_users_if_not_exist(user_info)
             
             user_email = user['email']
             session['user'] = user_email
-            return jsonify(user)
+            return {
+                "response": jsonify({"data": user}),
+                "code_status": 200
+            }
         
         return {
             "response": jsonify(

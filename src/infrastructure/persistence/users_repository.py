@@ -120,20 +120,30 @@ class UsersRepository(BaseEntity):
     
     def insert_user(self, params_new_user):
         query = "INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)"
-        
-        password_hashed = generate_password_hash(params_new_user["password"])
-        
-        params = (
-            params_new_user["name"], 
-            params_new_user["surname"], 
-            password_hashed, 
-            params_new_user["email"], 
-            params_new_user["status"], 
-            params_new_user["role"]
-        )
+        params = self._get_params_to_insert(params_new_user)
+
         self.cursor.execute(query, params = params)
         self.conn.commit()
         return
+    
+    def _get_params_to_insert(self, params_new_user):
+        if "email_verified" in params_new_user: # log in with google
+            name = params_new_user["given_name"]
+            surname = params_new_user["family_name"]
+            password = generate_password_hash(params_new_user["sub"])
+        else:
+            name = params_new_user["name"]
+            surname = params_new_user["surname"]
+            password = generate_password_hash(params_new_user["password"])
+        
+        return (
+            name,
+            surname,
+            password,
+            params_new_user["email"],
+            params_new_user["status"],
+            params_new_user["role"]
+        )
 
     def delete_users(self, user_id):
         query = "DELETE FROM users WHERE uuid = %s"
