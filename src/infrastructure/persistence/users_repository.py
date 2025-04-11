@@ -11,7 +11,7 @@ class UsersRepository(BaseEntity):
 
 
     def _parse_user(self, user_params):
-        self.log.debug(f"DEBUG: user_params is {user_params}")
+        self.log.debug(f"user_params is {user_params}")
 
         location = None
         if "location" in user_params and user_params["location"] is not None:
@@ -90,22 +90,60 @@ class UsersRepository(BaseEntity):
             return user
         return self._parse_user(user[0])
     
+    def get_user_with_email(self, email):
+        query = """
+        SELECT ROW_TO_JSON(user_data) 
+        FROM (
+            SELECT 
+                u.uuid,
+                u.name,
+                u.surname,
+                u.password,
+                u.email,
+                u.status,
+                u.role,
+                JSON_BUILD_OBJECT(
+                    'latitude', l.latitude,
+                    'longitude', l.longitude
+                ) AS location
+            FROM users u
+            LEFT JOIN user_locations l ON u.uuid = l.uuid
+            WHERE u.email = %s
+        ) AS user_data;
+        """
+        params = (str(email),)
+        self.cursor.execute(query, params = params)
+        user = self.cursor.fetchone()
+        if not user:
+            return user
+        return self._parse_user(user[0])
+    
     def insert_user(self, params_new_user):
         query = "INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)"
-        
-        password_hashed = generate_password_hash(params_new_user["password"])
-        
-        params = (
-            params_new_user["name"], 
-            params_new_user["surname"], 
-            password_hashed, 
-            params_new_user["email"], 
-            params_new_user["status"], 
-            params_new_user["role"]
-        )
+        params = self._get_params_to_insert(params_new_user)
+
         self.cursor.execute(query, params = params)
         self.conn.commit()
         return
+    
+    def _get_params_to_insert(self, params_new_user):
+        if "email_verified" in params_new_user: # log in with google
+            name = params_new_user["given_name"]
+            surname = params_new_user["family_name"]
+            password = generate_password_hash(params_new_user["sub"])
+        else:
+            name = params_new_user["name"]
+            surname = params_new_user["surname"]
+            password = generate_password_hash(params_new_user["password"])
+        
+        return (
+            name,
+            surname,
+            password,
+            params_new_user["email"],
+            params_new_user["status"],
+            params_new_user["role"]
+        )
 
     def delete_users(self, user_id):
         query = "DELETE FROM users WHERE uuid = %s"

@@ -2,7 +2,9 @@ from datetime import timedelta
 import logging
 import os
 from flask import Flask, request
+from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
+
 from src.app_factory import AppFactory
 
 
@@ -13,11 +15,17 @@ CORS(users_app)
 users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
 users_app.permanent_session_lifetime = timedelta(minutes=5) 
 
+# OAuth config
+oauth = OAuth(users_app)
+
+# Logger config
 env = os.getenv("FLASK_ENV")
 log_level = logging.DEBUG if env == "development" else logging.INFO
 users_app.logger.setLevel(log_level)
 users_logger = users_app.logger
-user_controller = AppFactory.create(users_logger)
+
+# Create layers
+user_controller = AppFactory.create(users_logger, oauth)
 
 
 @users_app.get("/health")
@@ -91,9 +99,27 @@ def add_admin():
 
 
 """
-Login de administrador.
+Login an admin.
 """
 @users_app.post("/users/admin/login")
 def login_admin():
     result = user_controller.login_admin(request)
+    return result["response"], result["code_status"]
+
+
+"""
+Login a user with google.
+
+"role" query param is needed. 
+Default: student.
+Ex: '?role=student' or '?role=teacher'.
+"""
+@users_app.get("/users/login/google")
+def login_user_with_google():
+    return user_controller.login_user_with_google(request)
+
+
+@users_app.get('/users/authorize')
+def authorize():
+    result = user_controller.authorize(request)
     return result["response"], result["code_status"]
