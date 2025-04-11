@@ -8,7 +8,7 @@ class AppFactory:
     @staticmethod
     def create(logger, oauth):
         user_repository = UsersRepository(logger)
-        google = GoogleService(oauth)
+        google = GoogleService(oauth, logger)
         user_service = UserService(user_repository, google, logger)
         user_controller = UserController(user_service, logger)
         return user_controller

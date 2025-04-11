@@ -477,12 +477,15 @@ class UserController:
     Login a user with google
     """
     def login_user_with_google(self, request):
+        self.log.info(f"In controller with request: {request}")
         role = request.args.get("role", "student")
+        self.log.info(f"In controller - role: {role}")
         return self.user_service.login_user_with_google(role)
 
 
     def authorize(self, request):
         user_info = self.user_service.authorize()
+        self.log.info(f"In controller - user_info: {user_info}")
         
         if user_info:
             user_info["role"] = request.args.get("state", "student") 

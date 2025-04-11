@@ -4,7 +4,8 @@ USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 
 class GoogleService:
-    def __init__(self, oauth):
+    def __init__(self, oauth, logger):
+        self.log = logger
         self.google = oauth.register(
             name='google',
             client_id=os.getenv("GOOGLE_CLIENT_ID"),
@@ -14,7 +15,9 @@ class GoogleService:
         )
     
     def authorize_redirect(self, role):
+        self.log.info(f"In google service - role: {role}")
         redirect_uri = os.getenv("OAUTH_REDIRECT_URI")
+        self.log.info(f"In google service - redirect_uri: {redirect_uri}")
         return self.google.authorize_redirect(redirect_uri, state=role)
 
 
@@ -23,4 +26,5 @@ class GoogleService:
     
     def get_user_info(self):
         response = self.google.get(USERINFO_URL)
+        self.log.info(f"In google service - get_user_info - response: {response}")
         return response.json()
