@@ -122,6 +122,19 @@ def login_user_with_google():
 
 @users_app.get('/users/authorize')
 def authorize():
-    users_logger.info(f"In /users/authorize with request: {request}")
+    users_logger.debug(f"In GET /users/authorize with request: {request}")
     result = user_controller.authorize(request)
+    return result["response"], result["code_status"]
+
+"""
+Authorize token with google.
+
+"role" query param is needed. 
+Default: student.
+Ex: '?role=student' or '?role=teacher'.
+"""
+@users_app.post('/users/authorize')
+def authorize_with_token():
+    users_logger.debug(f"In POST /users/authorize with request: {request}")
+    result = user_controller.authorize_with_token(request)
     return result["response"], result["code_status"]

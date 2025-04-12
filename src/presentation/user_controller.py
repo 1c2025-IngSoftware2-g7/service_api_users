@@ -12,7 +12,6 @@ or sending the response back to the client (in case we’re operating deep in th
 
 - It has serialization and deserialization logic. Validations. Authentication.
 """
-
 class UserController:
     def __init__(self, user_service: UserService, logger): 
         self.user_service = user_service
@@ -513,3 +512,36 @@ class UserController:
             ),
             "code_status": 404,
         }
+
+
+    def authorize_with_token(self, request):
+        data = request.get_json()
+        self.log.debug(f"Data: {data}")
+        token = data.get('token')
+
+        user_info = self.user_service.verify_google_token(token)
+        if not user_info:
+            return {
+                "response": jsonify(
+                    {
+                        "type": "about:blank",
+                        "title": NOT_USER,
+                        "status": 0,
+                        "detail": f"Token inválido",
+                        "instance": f"/users/authorize",
+                    }
+                ),
+                "code_status": 401,
+            }
+
+
+        data["role"] = data.get("role", "student")
+        data["status"] = data.get("status", "enabled")
+        user = self.user_service.create_users_if_not_exist(data)
+        user = self._serialize_user(user)
+
+        return {
+            "response": jsonify({"data": user}),
+            "code_status": 200
+        }
+    
