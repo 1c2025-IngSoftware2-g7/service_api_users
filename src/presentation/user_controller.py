@@ -491,7 +491,9 @@ class UserController:
             user_info["role"] = request.args.get("state", "student") 
             user_info["status"] = "enabled"
             user = self.user_service.create_users_if_not_exist(user_info)
-            
+            user = self._serialize_user(user)
+            self.log.debug(f"In controller - user: {user}")
+
             user_email = user['email']
             session['user'] = user_email
             return {

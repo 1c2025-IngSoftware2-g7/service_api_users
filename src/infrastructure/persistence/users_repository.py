@@ -115,7 +115,7 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query, params = params)
         user = self.cursor.fetchone()
         if not user:
-            return user
+            return None
         return self._parse_user(user[0])
     
     def insert_user(self, params_new_user):
