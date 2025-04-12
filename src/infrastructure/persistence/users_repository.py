@@ -130,11 +130,15 @@ class UsersRepository(BaseEntity):
         if "email_verified" in params_new_user: # log in with google
             name = params_new_user["given_name"]
             surname = params_new_user["family_name"]
-            password = generate_password_hash(params_new_user["sub"])
         else:
             name = params_new_user["name"]
             surname = params_new_user["surname"]
+            
+
+        if "password" in params_new_user:
             password = generate_password_hash(params_new_user["password"])
+        else:
+            password = generate_password_hash(params_new_user["token"])
         
         return (
             name,
