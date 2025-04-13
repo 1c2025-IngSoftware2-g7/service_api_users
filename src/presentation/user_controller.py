@@ -169,7 +169,8 @@ class UserController:
                     "code_status": 409,
                 }
                 
-            self.user_service.create(user)
+            user = self.user_service.create(user)
+            user = self._serialize_user(user)
             return {
                 "response": jsonify({"data": user}),
                 "code_status": 201

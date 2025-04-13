@@ -47,7 +47,7 @@ class UserService:
     """
     def create(self, request):
         self.user_repository.insert_user(request)
-        return
+        return self.user_repository.get_user_with_email(request['email'])
 
 
     """
