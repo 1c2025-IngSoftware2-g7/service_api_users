@@ -138,3 +138,33 @@ def authorize_with_token():
     users_logger.debug(f"In POST /users/authorize with request: {request}")
     result = user_controller.authorize_with_token(request)
     return result["response"], result["code_status"]
+
+
+"""
+User sign up.
+Body: token, role, email_verified, email, given_name, family_name, photo.
+
+Create profile: POST /profiles --> TODO: Move to API gateway.
+"""
+@users_app.post('/users/signup/google')
+def post_signup_google():
+    users_logger.debug(f"In POST /users/signup/google with request: {request}")
+    result = user_controller.authorize_signup_token(request)
+    
+    return result["response"], result["code_status"]
+
+
+"""
+User login.
+Body: token, email_verified, email, given_name, family_name, photo.
+If the status is "disabled" in db, user is not returned. User locked error is returned.
+
+UPDATE /profiles with photo --> TODO: Move to API gateway.
+"""
+@users_app.post('/users/login/google')
+def post_login_google():
+    users_logger.debug(f"In POST /users/login/google with request: {request}")
+    result = user_controller.authorize_login_token(request)
+    return result["response"], result["code_status"]
+
+
