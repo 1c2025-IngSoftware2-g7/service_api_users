@@ -30,7 +30,7 @@ Permite:
     - 5432: Utilizado por la base de datos PostgreSQL.
     - 8080: Utilizado por la API.
 
-Adicionalmente, menciono a continuación lo utilizado dentro de los contenedores:
+Adicionalmente, se menciona a continuación lo utilizado dentro de los contenedores:
 
 - Lenguaje:
     - Python 3.13 (Utilizado en la imagen del Dockerfile).
@@ -103,7 +103,7 @@ Con el servicio levantado se debe correr desde root:
 docker compose exec app python /create_first_admin.py
 ```
 
-Se solicitara los datos del administrador y se creara el primer perfil con autorizaciones de "admin". Luego ya no se podrá volver a crear un administrador de esta forma. También se puede verificar que se creo el registro correctamente con:
+Se solicitará los datos del administrador y se creará el primer perfil con autorizaciones de "admin". Luego ya no se podrá volver a crear un administrador de esta forma. También se puede verificar que se creó el registro correctamente con:
 ```bash
 docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM users WHERE role='admin';"
 ```
@@ -113,5 +113,6 @@ docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM u
 Se encuentra desplegada en Render. 
 Se puede ingresar a través del siguiente link: https://service-api-users.onrender.com/users
 
-Se levantó el servicio que escucha las request sobre la API de Usuarios. Para esto se contruye la imagen en Render a partir del Dockerfile y se corre con el comando descripto en este archivo.
-Además, se deployó de forma separada la base de datos en PostgreSQL. Con la cual se comunica el backend de Usuarios a través de los datos de conexión de esta base indicados en el Enviroments de nuestro servicio.
+Se levantó el servicio que escucha las request sobre la API de Usuarios. Para esto se construye la imagen en Render a partir del Dockerfile y se corre con el comando descrito en este archivo.
+Además, se deployó de forma separada la base de datos en PostgreSQL. Con la cual se comunica el backend de Usuarios a través de los datos de conexión de esta base indicados en el Environments de nuestro servicio.
+
