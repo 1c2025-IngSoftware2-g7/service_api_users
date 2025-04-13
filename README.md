@@ -2,8 +2,8 @@
 
 ## Contenidos
 1. Introducción
-2. 
-3. Pre-requisitos
+2. Pre-requisitos
+3. CI-CD
 4. Tests
 5. Comandos para construir la imagen de Docker
 6. Comandos para correr la base de datos
@@ -11,14 +11,18 @@
 
 ## 1. Introducción
 
-## 2. CI
+Microservicio para la gestión de Usuarios en ClassConnect.
+Permite:
+    - Creación de usuarios nuevos.
+    - Login de usuarios a través de email y contraseña.
+    - Login de administradores de la plataforma.
+    - Registro de usuarios (creación) a través de Google.
+    - Login a través de Google.
+    - Integración entre una cuenta creada de forma tradicional y el ingreso a través de Google.
+    - Sesiones con tiempo de expiración.
 
-### Test coverage
-
-[![codecov](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users/branch/<RAMA>/graph/badge.svg)](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users)
-
-## 3. Pre-requisitos
-- Necesario para levantar el entorno de desarrollo:
+## 2. Pre-requisitos
+- Necesario para levantar el entorno de desarrollo de forma local:
     - [Docker](https://docs.docker.com/get-started/introduction/) (version 27.3.1) 
     - [Docker-compose](https://docs.docker.com/compose/install/) (version 2.30.3)
 
@@ -37,9 +41,31 @@ Adicionalmente, menciono a continuación lo utilizado dentro de los contenedores
 - Gestión de paquetes:
     - pip (se usa dentro del contenedor para instalar dependencias).
 
+
+## 3. CI-CD
+
+Se realizó un [repositorio template de los workflows](https://github.com/1c2025-IngSoftware2-g7/ci_templates/tree/main) de test y deploy en Render, el cual se reutiliza en todos los repos del backend realizados en python.
+Se corre, en los tests:
+    - Set up Python
+    - Install dependencies
+    - Lint with flake8
+    - Run tests in Docker
+    - Upload to Codecov
+
+En el deploy: 
+    - Checkout code (clone del repositorio).
+    - Set up Python
+    - Install dependencies
+    - Trigger deploy in Render
+
+### Test coverage
+
+[![codecov](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users/branch/<RAMA>/graph/badge.svg)](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users)
+
+
 ## 4. Tests
 Para la implementación de los test de integración, se utilizó la librería [pytest](https://www.psycopg.org/psycopg3/docs/basic/index.html).  
-Estos se encuentran desarrollados en ```./src/test/api_test.py```.  
+Estos se encuentran desarrollados en ```./tests/api_test.py```.  
 
 
 ## 5. Comandos para construir la imagen de Docker
@@ -49,16 +75,18 @@ docker compose build
 ```
 
 ## 6. Comandos para correr la base de datos
-Como ya se mencionó, se utilizó docker compose. Por lo que para levantar todas las imágenes del proyecto, se debe correr:
+Como ya se mencionó, se utilizó docker compose para correr el servicio de forma local. Por lo que para levantar todas las imágenes del proyecto, se debe correr:
 ```bash
 docker compose up
 ```
 
 En ```docker-compose.yml```:
-- db: Base de datos PostgreSQL. Se define la imagen oficial, los parámetros para la conexión, el puerto en el que escuchará (5432) y se carga el script que se debe correr para inicializar la base de datos, un tipo de usuario, sus permisos y se crea la tabla de cursos. Además, se define la red a la que va a pertenecer.  
+- db local: Base de datos PostgreSQL. Se define la imagen oficial, los parámetros para la conexión, el puerto en el que escuchará (5432) y se carga el script que se debe correr para inicializar la base de datos, un tipo de usuario, sus permisos y se crea la tabla de cursos. Además, se define la red a la que va a pertenecer.  
 
 > Para construir el docker de la base de datos y el script para levantar la base de datos y crear la tabla (cuando se corre por primera vez el proyecto), se utilizó [esta documentación](https://hub.docker.com/_/postgres).  
 Se puede observar el script que se corre luego de levantarse la base de datos en: ```./initialize_users_db.sql```. Este fue incluido en el directorio ```/docker-entrypoint-initdb.d/``` dentro del contenedor, por lo que PostgreSQL lo ejecuta automáticamente cuando el contenedor se levanta por primera vez.
+
+> En Render se corrieron los comandos sobre la base de datos, directamente sobre la base levantada en Render.
 
 ## 7. Comandos para correr la imagen del servicio
 De igual forma que en el inciso anterior:
@@ -79,3 +107,11 @@ Se solicitara los datos del administrador y se creara el primer perfil con autor
 ```bash
 docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM users WHERE role='admin';"
 ```
+
+# 9. Despliegue en la Nube 
+
+Se encuentra desplegada en Render. 
+Se puede ingresar a través del siguiente link: https://service-api-users.onrender.com/users
+
+Se levantó el servicio que escucha las request sobre la API de Usuarios. Para esto se contruye la imagen en Render a partir del Dockerfile y se corre con el comando descripto en este archivo.
+Además, se deployó de forma separada la base de datos en PostgreSQL. Con la cual se comunica el backend de Usuarios a través de los datos de conexión de esta base indicados en el Enviroments de nuestro servicio.
