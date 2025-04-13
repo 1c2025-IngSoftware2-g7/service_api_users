@@ -15,6 +15,7 @@ load_dotenv()
 def not_user_id():
     return str(uuid.uuid4())
 
+
 @pytest.fixture
 def response_without_users():
     return {"data": []}
@@ -31,13 +32,15 @@ In order, the following are executed:
     2) Run the test.
     3) Delete the test user.  
 """
+
+
 @pytest.fixture
 def setup_and_cleanup_test_data(user):
-    #execute_query(INSERT_QUERY, user)
+    # execute_query(INSERT_QUERY, user)
 
     yield user["uuid"]  # Se ejecuta el test
 
-    #execute_query(DELETE_QUERY, {"uuid": user["uuid"]})
+    # execute_query(DELETE_QUERY, {"uuid": user["uuid"]})
 
 
 @pytest.fixture
@@ -60,6 +63,7 @@ def not_user_response(not_user_id):
         "detail": f"The user with uuid {not_user_id} was not found",
         "instance": f"/users/{not_user_id}",
     }
+
 
 def wait_for_app():
     for _ in range(10):
@@ -84,10 +88,12 @@ def test_get_users_without_users(response_without_users):
     assert response.status_code == 200
     assert response_without_users == response_data
 
+
 @pytest.fixture
 def client():
     with users_app.test_client() as client:
         yield client
+
 
 def test_get_users_empty(client):
     response = client.get("/users")

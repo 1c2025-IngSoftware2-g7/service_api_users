@@ -2,6 +2,7 @@ import psycopg
 import time
 from src.infrastructure.config.db_config import DatabaseConfig
 
+
 class BaseEntity:
 
     def __init__(self):
@@ -9,6 +10,7 @@ class BaseEntity:
         self.cursor = self.conn.cursor()
 
     """Retry connecting to the DB until it is available."""
+
     def connect_with_retries(self, retries=5, delay=3):
         for attempt in range(retries):
             try:
@@ -18,7 +20,6 @@ class BaseEntity:
                 time.sleep(delay)
         raise RuntimeError("Database connection error.")
 
-        
     def commit(self):
         self.cursor.commit()
 

@@ -1,5 +1,6 @@
 import os
 
+
 class DatabaseConfig:
     host: str
     database: str
@@ -11,6 +12,7 @@ class DatabaseConfig:
     - Production: This uses the cloud deployment environment variables. 
     - Local: This uses local variables (.env).
     """
+
     def __init__(self):
         self.database = os.environ.get("DB_NAME")
         self.user = os.environ.get("DB_USER")
