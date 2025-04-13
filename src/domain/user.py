@@ -1,5 +1,5 @@
-""" The domain layer represents the underlying domain, mostly consisting of domain entities and, 
-in some cases, services. 
+"""The domain layer represents the underlying domain, mostly consisting of domain entities and,
+in some cases, services.
 - Business rules, like invariants and algorithms, should all stay in this layer.
 
 
@@ -7,8 +7,12 @@ in some cases, services.
 - Returns an instance of the domain.
 - User definition.
 """
+
+
 class User:
-    def __init__(self, uuid, name, surname, password, email, status, role, location = None):
+    def __init__(
+        self, uuid, name, surname, password, email, status, role, location=None
+    ):
         # attributes
         self.uuid = uuid
         self.name = name
@@ -19,4 +23,3 @@ class User:
         self.role = role
         self.location = location
         return
-    
