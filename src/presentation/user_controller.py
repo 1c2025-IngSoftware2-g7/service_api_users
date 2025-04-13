@@ -550,6 +550,21 @@ class UserController:
     request should have: token, role, email_verified, email, given_name, family_name, photo
     """
     def authorize_signup_token(self, request):
+        params = ["token", "email_verified", "email", "given_name", "family_name", "photo", "role"]
+        if self._validate_request(data, params) == False:
+            return {
+                "response": jsonify(
+                    {
+                        "type": "about:blank",
+                        "title": BAD_REQUEST,
+                        "status": 0,
+                        "detail": f"{BAD_REQUEST}: request should have {params}",
+                        "instance": f"/users/authorize",
+                    }
+                ),
+                "code_status": 401,
+            }
+        
         data = request.get_json()
         self.log.debug(f"Data: {data}")
         token = data.get('token')
