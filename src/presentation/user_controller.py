@@ -551,6 +551,8 @@ class UserController:
     """
     def authorize_signup_token(self, request):
         params = ["token", "email_verified", "email", "given_name", "family_name", "photo", "role"]
+        data = request.get_json()
+        self.log.debug(f"Data: {data}")
         if self._validate_request(data, params) == False:
             return {
                 "response": jsonify(
@@ -565,10 +567,8 @@ class UserController:
                 "code_status": 401,
             }
         
-        data = request.get_json()
-        self.log.debug(f"Data: {data}")
+        
         token = data.get('token')
-
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
             return {
