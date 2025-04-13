@@ -545,3 +545,99 @@ class UserController:
             "code_status": 200
         }
     
+
+    """
+    request should have: token, role, email_verified, email, given_name, family_name, photo
+    """
+    def authorize_signup_token(self, request):
+        data = request.get_json()
+        self.log.debug(f"Data: {data}")
+        token = data.get('token')
+
+        user_info = self.user_service.verify_google_token(token)
+        if not user_info:
+            return {
+                "response": jsonify(
+                    {
+                        "type": "about:blank",
+                        "title": NOT_USER,
+                        "status": 0,
+                        "detail": f"Token inválido",
+                        "instance": f"/users/authorize",
+                    }
+                ),
+                "code_status": 401,
+            }
+
+
+        data["role"] = data.get("role", "student")
+        data["status"] = data.get("status", "enabled")
+        user = self.user_service.create_users(data)
+        user = self._serialize_user(user)
+
+        return {
+            "response": jsonify({"data": user}),
+            "code_status": 200
+        }
+    
+
+    """
+    request should have: token, email_verified, email, given_name, family_name, photo.
+    If the status is "disabled" in db, user is not returned. User locked error is returned.
+    """
+    def authorize_login_token(self, request):
+        params = ["token", "email_verified", "email", "given_name", "family_name", "photo"]
+        data = request.get_json()
+        self.log.debug(f"Data: {data}")
+
+        if self._validate_request(data, params) == False:
+            return {
+                "response": jsonify(
+                    {
+                        "type": "about:blank",
+                        "title": BAD_REQUEST,
+                        "status": 0,
+                        "detail": f"{BAD_REQUEST}: request should have {params}",
+                        "instance": f"/users/authorize",
+                    }
+                ),
+                "code_status": 401,
+            }
+        
+        token = data.get('token')
+        user_info = self.user_service.verify_google_token(token)
+        if user_info:
+            user = self.user_service.verify_user_existence(data)
+            if user != None:
+                if user.status == "enabled":
+                        user = self._serialize_user(user)
+
+                        return {
+                            "response": jsonify({"data": user}),
+                            "code_status": 200
+                        }
+                else: 
+                    detail = "User desabled"
+            else:
+                detail = "User not exist"
+        else: 
+            detail = "Token invalid"
+    
+        return {
+            "response": jsonify(
+                {
+                    "type": "about:blank",
+                    "title": NOT_USER,
+                    "status": 0,
+                    "detail": detail,
+                    "instance": f"/users/login/google",
+                }
+            ),
+            "code_status": 401,
+        }
+    
+    def _validate_request(self, request, params):
+        for param in params:
+            if param not in request:
+                return False
+        True
