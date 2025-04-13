@@ -561,7 +561,7 @@ class UserController:
                         "title": BAD_REQUEST,
                         "status": 0,
                         "detail": f"{BAD_REQUEST}: request should have {params}",
-                        "instance": f"/users/authorize",
+                        "instance": f"/users/signup/google",
                     }
                 ),
                 "code_status": 401,
@@ -578,7 +578,7 @@ class UserController:
                         "title": NOT_USER,
                         "status": 0,
                         "detail": f"Token inválido",
-                        "instance": f"/users/authorize",
+                        "instance": f"/users/signup/google",
                     }
                 ),
                 "code_status": 401,
@@ -613,7 +613,7 @@ class UserController:
                         "title": BAD_REQUEST,
                         "status": 0,
                         "detail": f"{BAD_REQUEST}: request should have {params}",
-                        "instance": f"/users/authorize",
+                        "instance": f"/users/login/google",
                     }
                 ),
                 "code_status": 401,
