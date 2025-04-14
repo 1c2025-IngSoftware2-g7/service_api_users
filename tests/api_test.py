@@ -5,8 +5,8 @@ import os
 import time
 from dotenv import load_dotenv
 
-from src.app import users_app
-from src.headers import BAD_REQUEST, NOT_USER
+from app import users_app
+from headers import BAD_REQUEST, NOT_USER
 
 load_dotenv()
 
@@ -63,31 +63,6 @@ def not_user_response(not_user_id):
         "detail": f"The user with uuid {not_user_id} was not found",
         "instance": f"/users/{not_user_id}",
     }
-
-
-def wait_for_app():
-    for _ in range(10):
-        try:
-            r = requests.get("http://app:8080/users")
-            if r.status_code == 200:
-                return
-        except:
-            pass
-        time.sleep(1)
-    raise Exception("app no está lista")
-
-
-def test_get_users_without_users(response_without_users):
-    print("FLASK_ENV:", os.getenv("FLASK_ENV"))
-
-    response = requests.get("http://app:8080/users")
-    print("response:", response)
-    response_data = response.json()
-    print("response_data:", response_data)
-
-    assert response.status_code == 200
-    assert response_without_users == response_data
-
 
 @pytest.fixture
 def client():

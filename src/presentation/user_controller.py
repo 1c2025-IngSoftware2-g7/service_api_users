@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, session
 
-from src.headers import (
+from headers import (
     BAD_REQUEST,
     DELETE,
     NOT_USER,
@@ -13,7 +13,7 @@ from src.headers import (
     ADMIN_LOGIN_SUCCESS,
     ADMIN_LOGIN_FAILED,
 )
-from src.application.user_service import UserService
+from application.user_service import UserService
 from werkzeug.security import check_password_hash
 
 

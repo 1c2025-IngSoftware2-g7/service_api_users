@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   db:
     image: postgres
@@ -34,17 +36,16 @@ services:
     build: .
     environment:
       - FLASK_ENV=testing
-      - PYTHONPATH=/
+      - PYTHONPATH=/src
     depends_on:
-      db:
-        condition: service_started
-      app:
-        condition: service_healthy
+      - db
+      - app
     networks:
       - users_network
-    command: pytest --cov=src --cov-report=xml:/coverage/coverage.xml tests/
+    command: pytest -v -s --cov=src --cov-report=xml:/coverage/coverage.xml tests/
     volumes:
       - ./coverage:/coverage
+      - ./src:/src
     env_file:
       - .env
 

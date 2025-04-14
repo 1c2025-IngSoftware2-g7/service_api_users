@@ -1,7 +1,6 @@
-from src.domain.location import Location
-from src.infrastructure.config.db_config import DatabaseConfig
-from src.infrastructure.persistence.base_entity import BaseEntity
-from src.domain.user import User
+from domain.location import Location
+from infrastructure.persistence.base_entity import BaseEntity
+from domain.user import User
 from werkzeug.security import generate_password_hash
 
 
@@ -54,6 +53,7 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query)
         users = self.cursor.fetchall()
         self.log.debug(f"DEBUG: users is {users}")
+        print(f"-----  ACAAAAA : {users}")
 
         # Returns an instance of the domain:
         result = []
@@ -170,8 +170,8 @@ class UsersRepository(BaseEntity):
         """
         params = (
             params_new_user["uuid"],
-            params_new_user["longitude"],
             params_new_user["latitude"],
+            params_new_user["longitude"],
         )
         self.cursor.execute(query, params=params)
         self.conn.commit()
