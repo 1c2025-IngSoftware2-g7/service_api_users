@@ -1,4 +1,4 @@
-from src.infrastructure.persistence.users_repository import UsersRepository
+from infrastructure.persistence.users_repository import UsersRepository
 
 """ 
 The application layer contains all the logic that is required by the application to meet its functional requirements and, 

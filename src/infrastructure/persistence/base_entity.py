@@ -1,6 +1,6 @@
 import psycopg
 import time
-from src.infrastructure.config.db_config import DatabaseConfig
+from infrastructure.config.db_config import DatabaseConfig
 
 
 class BaseEntity:

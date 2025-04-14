@@ -5,7 +5,7 @@ from flask import Flask, request
 from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
 
-from src.app_factory import AppFactory
+from app_factory import AppFactory
 
 
 users_app = Flask(__name__)
