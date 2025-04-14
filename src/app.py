@@ -4,6 +4,7 @@ import os
 from flask import Flask, request
 from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
 
 from app_factory import AppFactory
 
@@ -27,6 +28,16 @@ users_logger = users_app.logger
 # Create layers
 user_controller = AppFactory.create(users_logger, oauth)
 
+SWAGGER_URL = '/docs'  
+API_URL = '/static/openapi.yaml'
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL, 
+    API_URL,
+    config={ 
+        'app_name': "Users API"
+    }
+)
+users_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 @users_app.get("/health")
 def health_check():
@@ -191,3 +202,4 @@ def post_login_google():
     users_logger.debug(f"In POST /users/login/google with request: {request}")
     result = user_controller.authorize_login_token(request)
     return result["response"], result["code_status"]
+
