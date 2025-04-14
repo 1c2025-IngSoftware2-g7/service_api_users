@@ -143,7 +143,7 @@ class UserController:
             user = request.get_json()
             self.log.debug(f"DEBUG: json in create_users -> {user}")
 
-            # Bloquea asignación manual de rol 'admin'
+            # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
                 return {
                     "response": jsonify(

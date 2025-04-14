@@ -4,12 +4,11 @@ from flask import Flask, jsonify
 from presentation.user_controller import UserController
 from werkzeug.security import generate_password_hash
 
+from app import users_app
+
 @pytest.fixture
 def app():
-    app = Flask(__name__)
-    app.config["TESTING"] = True
-    app.secret_key = "test"
-    return app
+    yield users_app
 
 @pytest.fixture
 def mock_user():
@@ -58,7 +57,7 @@ def test_get_specific_user_not_found(app, controller):
         response = controller.get_specific_users("not-found-id")
         assert response["code_status"] == 404
 
-"""
+
 def test_create_user_success(app, controller, mock_user):
     controller.user_service.create.return_value = mock_user
     controller.user_service.mail_exists.return_value = None
@@ -73,17 +72,18 @@ def test_create_user_success(app, controller, mock_user):
         "role": "student"
     }
 
-    with app.test_request_context(json=request_data):
-        request = app.test_client().post("/users", json=request_data)
-        response = controller.create_users(request)
-        assert response["code_status"] == 201
-        assert response["response"].json["data"]["email"] == "user.test@gmail.com"
+    client = app.test_client()
+    response = client.post("/users", json=request_data)
+
+    assert response.status_code == 201
+    response_data = response.get_json()
+    assert response_data["data"]["email"] == "user.test@gmail.com"
 
 def test_create_user_conflict_email(app, controller):
     controller.user_service.mail_exists.return_value = True
     controller._check_create_user_params = MagicMock(return_value=(True, "Ok"))
 
-    user_data = {
+    request_data = {
         "name": "Test",
         "surname": "User",
         "password": "password",
@@ -92,10 +92,11 @@ def test_create_user_conflict_email(app, controller):
         "role": "student"
     }
 
-    with app.test_request_context(json=user_data):
-        request = app.test_client().post("/users", json=user_data)
-        response = controller.create_users(request)
-        assert response["code_status"] == 409
+    client = app.test_client()
+    response = client.post("/users", json=request_data)
+
+    assert response.status_code == 409
+
 
 def test_login_user_success(app, controller, mock_user):
     controller.user_service.mail_exists.return_value = mock_user.uuid
@@ -106,12 +107,12 @@ def test_login_user_success(app, controller, mock_user):
         "password": "password"
     }
 
-    with app.test_request_context(json=request_data):
-        with patch("application.user_controller.session", {}) as test_session:
-            request = app.test_client().post("/users/login", json=request_data)
-            response = controller.login_users(request)
-            assert response["code_status"] == 200
-            assert response["response"].json["data"]["email"] == "user.test@gmail.com"
+    client = app.test_client()
+    response = client.post("/users/login", json=request_data)
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    assert response_data["data"]["email"] == "user.test@gmail.com"
 
 
 def test_login_user_wrong_password(app, controller, mock_user):
@@ -124,11 +125,11 @@ def test_login_user_wrong_password(app, controller, mock_user):
         "password": "invalid"
     }
 
-    with app.test_request_context(json=request_data):
-        request = app.test_client().post("/users/login", json=request_data)
-        response = controller.login_users(request)
-        assert response["code_status"] == 403
-"""
+    client = app.test_client()
+    response = client.post("/users/login", json=request_data)
+
+    assert response.status_code == 403
+
 
 def test_delete_user_success(app, controller, mock_user):
     controller.get_specific_users = MagicMock(return_value={"code_status": 200})
