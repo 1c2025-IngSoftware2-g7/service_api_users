@@ -2,17 +2,22 @@
 
 ## Contenidos
 1. Introducción
-2. Pre-requisitos
-3. CI-CD
-4. Tests
-5. Comandos para construir la imagen de Docker
-6. Comandos para correr la base de datos
-7. Comandos para correr la imagen del servicio
+2. Arquitectura de componentes
+3. Pre-requisitos
+4. CI-CD
+5. Tests
+6. Comandos para construir la imagen de Docker
+7. Comandos para correr la base de datos
+8. Comandos para correr la imagen del servicio
+9. Comandos para crear el primer administrador
+10. Despliegue en la Nube 
 
 ## 1. Introducción
 
 Microservicio para la gestión de Usuarios en ClassConnect.
-Permite:
+Se utilizó por una [arquitectura en capas](https://dzone.com/articles/layered-architecture-is-good).
+
+El servicio permite:
     - Creación de usuarios nuevos.
     - Login de usuarios a través de email y contraseña.
     - Login de administradores de la plataforma.
@@ -21,7 +26,11 @@ Permite:
     - Integración entre una cuenta creada de forma tradicional y el ingreso a través de Google.
     - Sesiones con tiempo de expiración.
 
-## 2. Pre-requisitos
+## 2. Arquitectura de componentes
+
+![Microservicios, lenguajes y servicios externos](doc/arq_ms.png)
+
+## 3. Pre-requisitos
 - Necesario para levantar el entorno de desarrollo de forma local:
     - [Docker](https://docs.docker.com/get-started/introduction/) (version 27.3.1) 
     - [Docker-compose](https://docs.docker.com/compose/install/) (version 2.30.3)
@@ -42,7 +51,7 @@ Adicionalmente, se menciona a continuación lo utilizado dentro de los contenedo
     - pip (se usa dentro del contenedor para instalar dependencias).
 
 
-## 3. CI-CD
+## 4. CI-CD
 
 Se realizó un [repositorio template de los workflows](https://github.com/1c2025-IngSoftware2-g7/ci_templates/tree/main) de test y deploy en Render, el cual se reutiliza en todos los repos del backend realizados en python.
 Se corre, en los tests:
@@ -63,18 +72,18 @@ En el deploy:
 [![codecov](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users/branch/<RAMA>/graph/badge.svg)](https://codecov.io/gh/1c2025-IngSoftware2-g7/service_api_users)
 
 
-## 4. Tests
+## 5. Tests
 Para la implementación de los test de integración, se utilizó la librería [pytest](https://www.psycopg.org/psycopg3/docs/basic/index.html).  
 Estos se encuentran desarrollados en ```./tests/api_test.py```.  
 
 
-## 5. Comandos para construir la imagen de Docker
+## 6. Comandos para construir la imagen de Docker
 Al utilizar docker-compose, se puede construir todas las imágenes definidas en docker-compose.yml con el siguiente comando:
 ```bash
 docker compose build
 ```
 
-## 6. Comandos para correr la base de datos
+## 7. Comandos para correr la base de datos
 Como ya se mencionó, se utilizó docker compose para correr el servicio de forma local. Por lo que para levantar todas las imágenes del proyecto, se debe correr:
 ```bash
 docker compose up
@@ -88,7 +97,7 @@ Se puede observar el script que se corre luego de levantarse la base de datos en
 
 > En Render se corrieron los comandos sobre la base de datos, directamente sobre la base levantada en Render.
 
-## 7. Comandos para correr la imagen del servicio
+## 8. Comandos para correr la imagen del servicio
 De igual forma que en el inciso anterior:
 ```bash
 docker compose up
@@ -97,7 +106,7 @@ docker compose up
 En ```docker-compose.yml```:
 - app: API RESTful en Flask. Se utiliza como imagen la definida en Dockerfile. Se indica el puerto 8080 para comunicarse con este servicio y se incluye en la misma red que la base de datos, de esta forma se pueden comunicar. Además, se define que este servicio se va a correr cuando se termine de levantar la base de datos. Por último, se indica el comando que se va a correr.
 
-## 8. Comandos para crear el primer administrador
+## 9. Comandos para crear el primer administrador
 Con el servicio levantado se debe correr desde root:
 ```bash
 docker compose exec app python /create_first_admin.py
@@ -108,7 +117,7 @@ Se solicitará los datos del administrador y se creará el primer perfil con aut
 docker compose exec db psql -U user_db -d classconnect_users -c "SELECT * FROM users WHERE role='admin';"
 ```
 
-# 9. Despliegue en la Nube 
+# 10. Despliegue en la Nube 
 
 Se encuentra desplegada en Render. 
 Se puede ingresar a través del siguiente link: https://service-api-users.onrender.com/users
