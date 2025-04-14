@@ -1,0 +1,252 @@
+openapi: 3.0.0
+info:
+  title: Users API
+  description: API for managing users, login, Google authentication, and admin accounts.
+  version: 1.0.0
+servers:
+  - url: https://service-api-users.onrender.com
+    description: Production server
+paths:
+  /health:
+    get:
+      summary: Check API status
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: List of users
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created
+
+  /users/{uuid}:
+    get:
+      summary: Get a specific user
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User found
+    delete:
+      summary: Delete a specific user
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted
+
+  /users/{user_id}/location:
+    put:
+      summary: Set user location
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+      responses:
+        '200':
+          description: Location updated
+
+  /users/login:
+    post:
+      summary: Log in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginData'
+      responses:
+        '200':
+          description: Login successful
+
+  /users/login/google:
+    get:
+      summary: Log in with Google (OAuth redirect)
+      parameters:
+        - in: query
+          name: role
+          required: false
+          schema:
+            type: string
+            enum: [student, teacher]
+            default: student
+      responses:
+        '302':
+          description: Redirect to Google OAuth
+    post:
+      summary: Log in with Google token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthData'
+      responses:
+        '200':
+          description: Google login successful
+
+  /users/signup/google:
+    post:
+      summary: Sign up with Google token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthData'
+      responses:
+        '201':
+          description: User registered
+
+  /users/admin:
+    post:
+      summary: Create an admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+      responses:
+        '201':
+          description: Admin created
+
+  /users/admin/login:
+    post:
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginData'
+      responses:
+        '200':
+          description: Admin authenticated
+
+  /users/authorize:
+    get:
+      summary: Google authorization (redirect)
+      parameters:
+        - in: query
+          name: role
+          required: false
+          schema:
+            type: string
+            enum: [student, teacher]
+            default: student
+      responses:
+        '200':
+          description: User authorized
+    post:
+      summary: Authorize user using Google token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthData'
+      responses:
+        '200':
+          description: Token authorized
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+
+    LoginData:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    GoogleAuthData:
+      type: object
+      properties:
+        token:
+          type: string
+        role:
+          type: string
+        email_verified:
+          type: boolean
+        email:
+          type: string
+        given_name:
+          type: string
+        family_name:
+          type: string
+        photo:
+          type: string
+
+    AdminUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
