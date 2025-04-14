@@ -53,7 +53,6 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query)
         users = self.cursor.fetchall()
         self.log.debug(f"DEBUG: users is {users}")
-        print(f"-----  ACAAAAA : {users}")
 
         # Returns an instance of the domain:
         result = []
