@@ -446,10 +446,12 @@ class UserController:
             return login_result
 
         user_data = login_result["response"].get_json().get("data")
-        session.permanent = False  # This avoids the session to be saved for 5 minutes and keep it permanent
 
         # Verifica si es admin
         if user_data[6] == "admin":
+            # Session created, we assign whatever for this session, we dont care
+            session["user"] = user_data
+            session.permanent = True  # this sets the session permanent
             return {
                 "response": jsonify(
                     {"message": ADMIN_LOGIN_SUCCESS, "data": user_data}
