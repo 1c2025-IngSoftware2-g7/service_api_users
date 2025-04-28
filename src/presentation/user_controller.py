@@ -256,6 +256,7 @@ class UserController:
             user_serialized_from_db = self.user_service.get_specific_users(
                 user_exists
             )  # we get the instance
+
             user_serialized_from_db = self._serialize_user(
                 user_serialized_from_db
             )  # Serialize the instance
@@ -263,6 +264,13 @@ class UserController:
             self.log.debug(
                 f"DEBUG: user_serialized_from_db is {user_serialized_from_db}"
             )
+
+            # First admin:
+            if user_serialized_from_db["role"] == "admin" and user_serialized_from_db["password"] == password:
+                return {
+                    "response": jsonify({"data": user_serialized_from_db}),
+                    "code_status": 200,
+                }
 
             if check_password_hash(user_serialized_from_db["password"], password):
                 # Do we need to return the user? . to ask
