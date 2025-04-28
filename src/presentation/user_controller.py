@@ -1,5 +1,6 @@
 import os
 from flask import jsonify, session
+from werkzeug.security import check_password_hash
 
 from headers import (
     BAD_REQUEST,
@@ -14,7 +15,7 @@ from headers import (
     ADMIN_LOGIN_FAILED,
 )
 from application.user_service import UserService
-from werkzeug.security import check_password_hash
+from presentation.error_generator import get_error_json
 
 
 """ 
@@ -55,11 +56,11 @@ class UserController:
             ),
         }
 
-    """
-    Get all users.
-    """
 
     def get_users(self):
+        """
+        Get all users.
+        """
 
         is_session_expired = self.is_session_valid()
 
@@ -72,11 +73,11 @@ class UserController:
 
         return {"response": jsonify({"data": users}), "code_status": 200}
 
-    """
-    Get specific user.
-    """
 
     def get_specific_users(self, uuid):
+        """
+        Get specific user.
+        """
 
         is_session_expired = self.is_session_valid()
 
@@ -93,23 +94,15 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": NOT_USER,
-                    "status": 0,
-                    "detail": f"The users with uuid {uuid} was not found",
-                    "instance": f"/users/{uuid}",
-                }
-            ),
+            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/{uuid}"),
             "code_status": 404,
         }
 
-    """
-    Delete user.
-    """
 
     def delete_specific_users(self, uuid):
+        """
+        Delete user.
+        """
         self.log.debug(
             f"DEBUG: self.get_specific_users(uuid) delete -> {self.get_specific_users(uuid)}"
         )
@@ -119,25 +112,18 @@ class UserController:
             return {"response": jsonify({"result": DELETE}), "code_status": 204}
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": NOT_USER,
-                    "status": 0,
-                    "detail": f"The users with uuid {uuid} was not found",
-                    "instance": f"/users/{uuid}",
-                }
-            ),
+            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/{uuid}"),
             "code_status": 404,
         }
 
-    """
-    Create a users.
-    In Flask: uuid.UUID is serialized to a string.
-    """
 
     def create_users(self, request):
+        """
+        Create a users.
+        In Flask: uuid.UUID is serialized to a string.
+        """
         self.log.debug(f"DEBUG: request in create_users -> {request}")
+        url = "/users"
 
         if request.is_json:
             user = request.get_json()
@@ -146,27 +132,14 @@ class UserController:
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
                 return {
-                    "response": jsonify(
-                        {
-                            "error": "Forbidden",
-                            "detail": "Use /users/admin endpoint to create admins",
-                        }
-                    ),
+                    "response": get_error_json("Forbidden", "Use /users/admin endpoint to create admins", url),
                     "code_status": 403,
                 }
 
             result, msg = self._check_create_user_params(user)
             if result == False:
                 return {
-                    "response": jsonify(
-                        {
-                            "type": "about:blank",
-                            "title": BAD_REQUEST,
-                            "status": 0,
-                            "detail": f"{BAD_REQUEST}: {msg}",
-                            "instance": f"/users",
-                        }
-                    ),
+                    "response": get_error_json(BAD_REQUEST, msg, url),
                     "code_status": 400,
                 }
 
@@ -175,15 +148,7 @@ class UserController:
 
             if mail_exists is not None:
                 return {
-                    "response": jsonify(
-                        {
-                            "type": "about:blank",
-                            "title": USER_ALREADY_EXISTS,
-                            "status": 0,
-                            "detail": f"The email {user['email']} already exists",
-                            "instance": f"/users",
-                        }
-                    ),
+                    "response": get_error_json(USER_ALREADY_EXISTS, f"The email {user['email']} already exists", url),
                     "code_status": 409,
                 }
 
@@ -192,21 +157,13 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 201}
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": BAD_REQUEST,
-                    "status": 0,
-                    "detail": f"{BAD_REQUEST} with body: {request}",
-                    "instance": f"/users",
-                }
-            ),
+            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url),
             "code_status": 400,
         }
 
-    """Add location."""
 
     def set_user_location(self, user_id, request):
+        """Add location."""
         data = request.get_json()
         latitude = data.get("latitude")
         longitude = data.get("longitude")
@@ -214,18 +171,9 @@ class UserController:
         result, msg = self._check_location(latitude, longitude)
         if result == False:
             return {
-                "response": jsonify(
-                    {
-                        "type": "about:blank",
-                        "title": BAD_REQUEST,
-                        "status": 0,
-                        "detail": f"{BAD_REQUEST}: {msg}",
-                        "instance": f"/users/<uuid:user_id>/location",
-                    }
-                ),
+                "response": get_error_json(BAD_REQUEST, msg, f"/users/<uuid:user_id>/location"),
                 "code_status": 400,
             }
-
         self.log.debug(
             f"DEBUG: self.get_specific_users(user_id) is {self.get_specific_users(user_id)}"
         )
@@ -237,20 +185,11 @@ class UserController:
 
         self.log.debug("User not exists")
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": NOT_USER,
-                    "status": 0,
-                    "detail": f"The users with uuid {user_id} was not found",
-                    "instance": f"/users/{user_id}/location",
-                }
-            ),
+            "response": get_error_json(NOT_USER, f"uuid {user_id} was not found", f"/users/{user_id}/location"),
             "code_status": 404,
         }
 
     def _check_location(self, latitude, longitude):
-
         if latitude is None or longitude is None:
             return False, "Location is required"
 
@@ -288,12 +227,13 @@ class UserController:
             return False, msg
 
         return True, "Ok."
-
-    """
-    Login users.
-    """
+    
 
     def login_users(self, request):
+        """
+        Login users.
+        """
+        url = "/users/login"
         if request.is_json:
             data = request.get_json()
 
@@ -309,15 +249,7 @@ class UserController:
 
             if user_exists is None:
                 return {
-                    "response": jsonify(
-                        {
-                            "type": "about:blank",
-                            "title": NOT_USER,
-                            "status": 0,
-                            "detail": f"The email {email} was not found",
-                            "instance": f"/users/login",
-                        }
-                    ),
+                    "response": get_error_json(NOT_USER, f"The email {email} was not found", url),
                     "code_status": 404,
                 }
 
@@ -347,39 +279,24 @@ class UserController:
                 }
             else:
                 return {
-                    "response": jsonify(
-                        {
-                            "type": "about:blank",
-                            "title": WRONG_PASSWORD,
-                            "status": 0,
-                            "detail": f"The password is not correct",
-                            "instance": f"/users/login",
-                        }
-                    ),
+                    "response": get_error_json(WRONG_PASSWORD, "The password is not correct", url),
                     "code_status": 403,
                 }
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": BAD_REQUEST,
-                    "status": 0,
-                    "detail": f"{BAD_REQUEST} with body: {request}",
-                    "instance": f"/users/login",
-                }
-            ),
+            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url),
             "code_status": 400,
         }
 
-    """
-    Create an admin user.
-    Authenticates the requester as an admin via email/password.
-    """
-
     def create_admin_user(self, request):
+        """
+        Create an admin user.
+        Authenticates the requester as an admin via email/password.
+        """
+        url = "/users/admin"
         if not request.is_json:
-            return {"response": jsonify({"error": BAD_REQUEST}), "code_status": 400}
+            return {"response": get_error_json(BAD_REQUEST, f"{request} is not json", url),
+                    "code_status": 400}
 
         data = request.get_json()
 
@@ -394,9 +311,7 @@ class UserController:
         missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:
             return {
-                "response": jsonify(
-                    {"error": f"Missing fields: {', '.join(missing_fields)}"}
-                ),
+                "response": get_error_json(BAD_REQUEST, f"Missing fields: {', '.join(missing_fields)}", url),
                 "code_status": 400,
             }
 
@@ -404,14 +319,14 @@ class UserController:
         admin = self.user_service.mail_exists(data["admin_email"])
         if not admin or not check_password_hash(admin[3], data["admin_password"]):
             return {
-                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "response": get_error_json(ADMIN_AUTH_FAILED, "not admin or not check password hash", url),
                 "code_status": 403,
             }
 
         # Verifica que el autenticador sea admin
         if admin[6] != "admin":
             return {
-                "response": jsonify({"error": ADMIN_AUTH_FAILED}),
+                "response": get_error_json(ADMIN_AUTH_FAILED, f"role {admin[6]} is not admin", url),
                 "code_status": 403,
             }
 
@@ -427,19 +342,22 @@ class UserController:
 
         valid, msg = self._check_create_user_params(new_user_data)
         if not valid:
-            return {"response": jsonify({"error": msg}), "code_status": 400}
+            return {"response": get_error_json("Error in params", msg, url), 
+                    "code_status": 400}
 
         try:
             self.user_service.create(new_user_data)
-            return {"response": jsonify({"message": ADMIN_CREATED}), "code_status": 201}
+            return {"response": jsonify({"message": ADMIN_CREATED}), 
+                    "code_status": 201}
         except Exception as e:
-            return {"response": jsonify({"error": str(e)}), "code_status": 500}
+            return {"response": get_error_json("Error in: user service - create", str(e), url), 
+                    "code_status": 500}
 
-    """
-    Login específico para administradores.
-    """
 
     def login_admin(self, request):
+        """
+        Login específico para administradores.
+        """
         login_result = self.login_users(request)
 
         if login_result["code_status"] != 200:
@@ -460,19 +378,17 @@ class UserController:
             }
         else:
             return {
-                "response": jsonify(
-                    {"error": ADMIN_LOGIN_FAILED, "detail": "User is not an admin"}
-                ),
+                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", "/users/admin/login"), 
                 "code_status": 403,
             }
 
-    """
-    Private function: This function checks if the session is still valid
-    In case it isnt valid, it will return a 401 error
-    else we return None
-    """
 
     def is_session_valid(self):
+        """
+        Private function: This function checks if the session is still valid
+        In case it isnt valid, it will return a 401 error
+        else we return None
+        """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
             self.log.info("In TEST, without session expiration.")
@@ -482,18 +398,16 @@ class UserController:
 
         if "user" not in session:
             return {
-                "response": jsonify(
-                    {"error": "Unauthorized", "detail": "Session expired"}
-                ),
+                "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
             }
         return None
 
-    """
-    Login a user with google
-    """
 
     def login_user_with_google(self, request):
+        """
+        Login a user with google
+        """
         self.log.info(f"In controller with request: {request}")
         role = request.args.get("role", "student")
         self.log.info(f"In controller - role: {role}")
@@ -554,11 +468,11 @@ class UserController:
 
         return {"response": jsonify({"data": user}), "code_status": 200}
 
-    """
-    request should have: token, role, email_verified, email, given_name, family_name, photo
-    """
 
     def authorize_signup_token(self, request):
+        """
+        request should have: token, role, email_verified, email, given_name, family_name, photo
+        """
         params = [
             "token",
             "email_verified",
@@ -607,12 +521,12 @@ class UserController:
 
         return {"response": jsonify({"data": user}), "code_status": 200}
 
-    """
-    request should have: token, email_verified, email, given_name, family_name, photo.
-    If the status is "disabled" in db, user is not returned. User locked error is returned.
-    """
 
     def authorize_login_token(self, request):
+        """
+        request should have: token, email_verified, email, given_name, family_name, photo.
+        If the status is "disabled" in db, user is not returned. User locked error is returned.
+        """
         params = [
             "token",
             "email_verified",
