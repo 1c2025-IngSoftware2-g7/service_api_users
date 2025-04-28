@@ -378,7 +378,7 @@ class UserController:
             }
         else:
             return {
-                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", url), 
+                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", "/users/admin/login"), 
                 "code_status": 403,
             }
 
