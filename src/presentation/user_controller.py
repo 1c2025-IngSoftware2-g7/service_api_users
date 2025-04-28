@@ -374,7 +374,7 @@ class UserController:
         user_data = login_result["response"].get_json().get("data")
 
         # Verifica si es admin
-        if user_data[6] == "admin":
+        if user_data["role"] == "admin":
             # Session created, we assign whatever for this session, we dont care
             session["user"] = user_data
             session.permanent = True  # this sets the session permanent
