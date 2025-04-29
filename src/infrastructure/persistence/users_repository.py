@@ -191,7 +191,7 @@ class UsersRepository(BaseEntity):
         user = self.cursor.fetchone()
 
         if user:
-            id = user[0]  # We get the ID and we return it as STR
-            return id
+            #id = user[0]  # We get the ID and we return it as STR
+            return user
 
         return None

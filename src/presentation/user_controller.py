@@ -94,7 +94,7 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
-            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/{uuid}"),
+            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/<uuid:uuid>"),
             "code_status": 404,
         }
 
@@ -112,7 +112,7 @@ class UserController:
             return {"response": jsonify({"result": DELETE}), "code_status": 204}
 
         return {
-            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/{uuid}"),
+            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/<uuid:uuid>", "DELETE"),
             "code_status": 404,
         }
 
@@ -132,14 +132,14 @@ class UserController:
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
                 return {
-                    "response": get_error_json("Forbidden", "Use /users/admin endpoint to create admins", url),
+                    "response": get_error_json("Forbidden", "Use /users/admin endpoint to create admins", url, "POST"),
                     "code_status": 403,
                 }
 
             result, msg = self._check_create_user_params(user)
             if result == False:
                 return {
-                    "response": get_error_json(BAD_REQUEST, msg, url),
+                    "response": get_error_json(BAD_REQUEST, msg, url, "POST"),
                     "code_status": 400,
                 }
 
@@ -148,7 +148,7 @@ class UserController:
 
             if mail_exists is not None:
                 return {
-                    "response": get_error_json(USER_ALREADY_EXISTS, f"The email {user['email']} already exists", url),
+                    "response": get_error_json(USER_ALREADY_EXISTS, f"The email {user['email']} already exists", url, "POST"),
                     "code_status": 409,
                 }
 
@@ -157,7 +157,7 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 201}
 
         return {
-            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url),
+            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url, "POST"),
             "code_status": 400,
         }
 
@@ -171,7 +171,7 @@ class UserController:
         result, msg = self._check_location(latitude, longitude)
         if result == False:
             return {
-                "response": get_error_json(BAD_REQUEST, msg, f"/users/<uuid:user_id>/location"),
+                "response": get_error_json(BAD_REQUEST, msg, f"/users/<uuid:user_id>/location", "POST"),
                 "code_status": 400,
             }
         self.log.debug(
@@ -185,7 +185,7 @@ class UserController:
 
         self.log.debug("User not exists")
         return {
-            "response": get_error_json(NOT_USER, f"uuid {user_id} was not found", f"/users/{user_id}/location"),
+            "response": get_error_json(NOT_USER, f"uuid {user_id} was not found", f"/users/<uuid:user_id>/location", "POST"),
             "code_status": 404,
         }
 
@@ -249,7 +249,7 @@ class UserController:
 
             if user_exists is None:
                 return {
-                    "response": get_error_json(NOT_USER, f"The email {email} was not found", url),
+                    "response": get_error_json(NOT_USER, f"The email {email} was not found", url, "POST"),
                     "code_status": 404,
                 }
 
@@ -287,12 +287,12 @@ class UserController:
                 }
             else:
                 return {
-                    "response": get_error_json(WRONG_PASSWORD, "The password is not correct", url),
+                    "response": get_error_json(WRONG_PASSWORD, "The password is not correct", url, "POST"),
                     "code_status": 403,
                 }
 
         return {
-            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url),
+            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url, "POST"),
             "code_status": 400,
         }
 
@@ -303,7 +303,7 @@ class UserController:
         """
         url = "/users/admin"
         if not request.is_json:
-            return {"response": get_error_json(BAD_REQUEST, f"{request} is not json", url),
+            return {"response": get_error_json(BAD_REQUEST, f"{request} is not json", url, "POST"),
                     "code_status": 400}
 
         data = request.get_json()
@@ -319,22 +319,22 @@ class UserController:
         missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:
             return {
-                "response": get_error_json(BAD_REQUEST, f"Missing fields: {', '.join(missing_fields)}", url),
+                "response": get_error_json(BAD_REQUEST, f"Missing fields: {', '.join(missing_fields)}", url, "POST"),
                 "code_status": 400,
             }
 
         # Autentica al admin existente
         admin = self.user_service.mail_exists(data["admin_email"])
-        if not admin or not check_password_hash(admin[3], data["admin_password"]):
+        if not admin or not check_password_hash(admin.email, data["admin_password"]):
             return {
-                "response": get_error_json(ADMIN_AUTH_FAILED, "not admin or not check password hash", url),
+                "response": get_error_json(ADMIN_AUTH_FAILED, "not admin or not check password hash", url, "POST"),
                 "code_status": 403,
             }
 
         # Verifica que el autenticador sea admin
-        if admin[6] != "admin":
+        if admin.role != "admin":
             return {
-                "response": get_error_json(ADMIN_AUTH_FAILED, f"role {admin[6]} is not admin", url),
+                "response": get_error_json(ADMIN_AUTH_FAILED, f"role {admin.role} is not admin", url, "POST"),
                 "code_status": 403,
             }
 
@@ -350,7 +350,7 @@ class UserController:
 
         valid, msg = self._check_create_user_params(new_user_data)
         if not valid:
-            return {"response": get_error_json("Error in params", msg, url), 
+            return {"response": get_error_json("Error in params", msg, url, "POST"), 
                     "code_status": 400}
 
         try:
@@ -358,7 +358,7 @@ class UserController:
             return {"response": jsonify({"message": ADMIN_CREATED}), 
                     "code_status": 201}
         except Exception as e:
-            return {"response": get_error_json("Error in: user service - create", str(e), url), 
+            return {"response": get_error_json("Error in: user service - create", str(e), url, "POST"), 
                     "code_status": 500}
 
 
@@ -386,7 +386,7 @@ class UserController:
             }
         else:
             return {
-                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", "/users/admin/login"), 
+                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", "/users/admin/login", "POST"), 
                 "code_status": 403,
             }
 

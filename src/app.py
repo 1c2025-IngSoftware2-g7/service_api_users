@@ -1,12 +1,15 @@
 from datetime import timedelta
 import logging
 import os
-from flask import Flask, request
+import time
+from flask import Flask, request, g
 from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from app_factory import AppFactory
+from monitoring.datadog_metrics import report_response_time, report_error
+from monitoring.resource_monitor import monitor_resources
 
 
 users_app = Flask(__name__)
@@ -38,6 +41,50 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     }
 )
 users_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+
+# Monitoring - Datadog:
+
+monitor_resources(interval_seconds=60)
+
+@users_app.before_request
+def start_timer():
+    g.start_time = time.time()
+
+@users_app.after_request
+def log_response_time(response):
+    if not hasattr(g, 'start_time'):
+        return response
+
+    duration = time.time() - g.start_time
+
+    try:
+        rule = request.url_rule.rule
+    except AttributeError:
+        rule = request.path  # fallback
+    
+    endpoint = f"{request.method} {rule}"
+
+    if request.path != '/health':
+        report_response_time(endpoint, duration)
+
+    return response
+
+@users_app.errorhandler(Exception)
+def handle_exception(e):
+    try:
+        rule = request.url_rule.rule
+    except AttributeError:
+        rule = request.path
+    endpoint = f"{request.method} {rule}"
+
+    report_error(endpoint_name=endpoint)
+
+    users_logger.error(e)
+    return "Internal Server Error", 500
+
+
+# Endpoints:
 
 @users_app.get("/health")
 def health_check():

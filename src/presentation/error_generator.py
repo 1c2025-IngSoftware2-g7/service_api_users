@@ -1,6 +1,9 @@
 from flask import jsonify
 
-def get_error_json(title, detail, url):
+from src.monitoring.datadog_metrics import report_error
+
+def get_error_json(title, detail, url, method="GET"):
+    report_error(endpoint_name=f"{method} {url}")
     return jsonify(
         {
             "type": "about:blank",

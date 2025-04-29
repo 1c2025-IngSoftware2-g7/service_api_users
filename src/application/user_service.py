@@ -21,58 +21,39 @@ class UserService:
         self.log = logger
         self.user_repository = user_repository
 
-    """Get all users."""
-
     def get_users(self):
+        """Get all users."""
         users = self.user_repository.get_all_users()
         return users
 
-    """
-    Get specific user.
-    """
-
     def get_specific_users(self, uuid):
+        """Get specific user."""
         user = self.user_repository.get_user(uuid)
         return user
 
-    """
-    Delete user.
-    """
-
     def delete(self, uuid):
+        """Delete user."""
         self.user_repository.delete_users(uuid)
         return
 
-    """
-    Create a users.
-    """
-
     def create(self, request):
+        """Create a users."""
         self.user_repository.insert_user(request)
         return self.user_repository.get_user_with_email(request["email"])
 
-    """
-    Add location.
-    """
-
     def set_location(self, uuid, latitude, longitude):
+        """Add location."""
         self.user_repository.set_location(
             {"uuid": uuid, "latitude": latitude, "longitude": longitude}
         )
         return
 
-    """ 
-    Function that check if a mail is valid on the database
-    If it is, we return the id from the user"""
-
     def mail_exists(self, email):
-        return self.user_repository.check_email(email)
-
-    """
-    Login a user with google
-    """
+        """  Function that check if a mail is valid on the database. If it is, we return the the user."""
+        return self.user_repository.get_user_with_email(email)
 
     def login_user_with_google(self, role):
+        """Login a user with google."""
         self.log.info(f"In service - login_user_with_google - role: {role}")
         return self.google.authorize_redirect(role)
 
