@@ -10,7 +10,7 @@ from app_factory import AppFactory
 
 
 users_app = Flask(__name__)
-CORS(users_app, origins=["*"])
+CORS(users_app, origins=["*"], supports_credentials=True, allow_headers=["Content-Type"], methods=["GET", "POST", "OPTIONS"])
 
 # Session config
 users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
