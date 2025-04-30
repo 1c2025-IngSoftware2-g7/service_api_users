@@ -19,12 +19,14 @@ class BaseEntity:
                 return psycopg.connect(connection_string)
             except psycopg.OperationalError:
                 time.sleep(delay)
-        current_app.logger.error()
+        current_app.logger.error("Database connection error.")
         raise RuntimeError("Database connection error.")
 
     def commit(self):
         self.cursor.commit()
 
     def __del__(self):
-        self.cursor.close()
-        self.conn.close()
+        if hasattr(self, "cursor"):
+            self.cursor.close()
+        if hasattr(self, "conn"):
+            self.conn.close()

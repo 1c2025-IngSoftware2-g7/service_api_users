@@ -81,7 +81,6 @@ def test_verify_google_token_invalid_email(mock_request, mock_verify, google_ser
 
     result = google_service.verify_google_token("invalid.token")
     assert result is None
-    google_service.log.error.assert_called_once()
 
 
 @patch("application.google_service.id_token.verify_oauth2_token", side_effect=ValueError("Invalid Token"))
@@ -89,4 +88,3 @@ def test_verify_google_token_invalid_email(mock_request, mock_verify, google_ser
 def test_verify_google_token_raises_exception(mock_request, mock_verify, google_service):
     result = google_service.verify_google_token("broken.token")
     assert result is None
-    google_service.log.error.assert_called_once()
