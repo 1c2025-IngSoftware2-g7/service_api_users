@@ -2,16 +2,15 @@ import os
 
 
 class DatabaseConfig:
-    host: str
-    database: str
-    user: str
-    password: str
-
     """
     Order of precedence of variables:
     - Production: This uses the cloud deployment environment variables. 
     - Local: This uses local variables (.env).
     """
+    host: str
+    database: str
+    user: str
+    password: str
 
     def __init__(self):
         self.database = os.environ.get("DB_NAME")

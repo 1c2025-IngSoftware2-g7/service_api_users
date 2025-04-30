@@ -9,15 +9,11 @@ def mock_oauth():
     return MagicMock()
 
 @pytest.fixture
-def mock_logger():
-    return MagicMock()
-
-@pytest.fixture
-def google_service(mock_oauth, mock_logger):
+def google_service(mock_oauth):
     os.environ["GOOGLE_CLIENT_ID"] = "fake-client-id"
     os.environ["GOOGLE_CLIENT_SECRET"] = "fake-secret"
     os.environ["OAUTH_REDIRECT_URI"] = "http://localhost/oauth2callback"
-    return GoogleService(mock_oauth, mock_logger)
+    return GoogleService(mock_oauth)
 
 
 def test_authorize_redirect(google_service):

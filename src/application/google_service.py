@@ -1,14 +1,14 @@
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from flask import current_app
 
 USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 
 class GoogleService:
-    def __init__(self, oauth, logger):
+    def __init__(self, oauth):
         self.client_id = os.getenv("GOOGLE_CLIENT_ID")
-        self.log = logger
         self.google = oauth.register(
             name="google",
             client_id=self.client_id,
@@ -18,9 +18,9 @@ class GoogleService:
         )
 
     def authorize_redirect(self, role):
-        self.log.info(f"In google service - role: {role}")
+        current_app.logger.info(f"In google service - role: {role}")
         redirect_uri = os.getenv("OAUTH_REDIRECT_URI")
-        self.log.info(f"In google service - redirect_uri: {redirect_uri}")
+        current_app.logger.info(f"In google service - redirect_uri: {redirect_uri}")
         return self.google.authorize_redirect(redirect_uri, state=role)
 
     def authorize_access_token(self):
@@ -28,14 +28,13 @@ class GoogleService:
 
     def get_user_info(self):
         response = self.google.get(USERINFO_URL)
-        self.log.info(f"In google service - get_user_info - response: {response}")
+        current_app.logger.info(f"In google service - get_user_info - response: {response}")
         return response.json()
 
-    """
-    This method validates the token, decodes it and returns the user info
-    """
-
     def verify_google_token(self, id_token_str):
+        """
+        This method validates the token, decodes it and returns the user info
+        """
         try:
             id_info = id_token.verify_oauth2_token(
                 id_token_str, requests.Request(), audience=self.client_id
@@ -55,8 +54,8 @@ class GoogleService:
                 }
 
             else:
-                raise ValueError("Email no verificado")
+                raise ValueError("Unverified email")
 
         except ValueError as e:
-            self.log.error(f"Token inválido: {e}")
+            current_app.logger.error(f"Invalid token: {e}")
             return None

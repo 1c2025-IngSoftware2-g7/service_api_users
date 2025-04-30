@@ -1,13 +1,14 @@
 import time
 import requests
 import os
-import psutil
+from flask import current_app
 
 DATADOG_API_KEY = os.getenv('DATADOG_API_KEY')
 DATADOG_API_URL = 'https://api.datadoghq.com/api/v1/series'
-SERVICE_NAME = os.getenv('SERVICE_NAME', 'users_service')
+SERVICE_NAME = os.getenv('SERVICE_NAME', 'users')
 
 def send_metric(metric_name, value, tags="users", metric_type="gauge"):
+    current_app.logger.debug(f"Send metric to Datadog: {metric_name}:{value}")
     if not DATADOG_API_KEY:
         print("Missing Datadog API key. Skipping metric send.")
         return
@@ -31,9 +32,9 @@ def send_metric(metric_name, value, tags="users", metric_type="gauge"):
     try:
         response = requests.post(DATADOG_API_URL, headers=headers, json=payload, timeout=5)
         if response.status_code != 202:
-            print(f"Failed to send metric {metric_name}: {response.text}")
+            current_app.logger.error(f"Failed to send metric {metric_name}: {response.text}")
     except requests.RequestException as e:
-        print(f"Error sending metric {metric_name}: {e}")
+        current_app.logger.error(f"Error sending metric {metric_name}: {e}")
 
 
 def report_response_time(endpoint_name, duration_seconds):

@@ -8,9 +8,8 @@ from application.user_service import UserService
 def user_service():
     mock_repo = MagicMock()
     mock_google = MagicMock()
-    mock_logger = MagicMock()
-    service = UserService(mock_repo, mock_google, mock_logger)
-    return service, mock_repo, mock_google, mock_logger
+    service = UserService(mock_repo, mock_google)
+    return service, mock_repo, mock_google
 
 
 def test_get_users(user_service):

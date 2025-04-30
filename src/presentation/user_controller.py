@@ -1,5 +1,5 @@
 import os
-from flask import jsonify, session
+from flask import jsonify, session, current_app
 from werkzeug.security import check_password_hash
 
 from headers import (
@@ -18,18 +18,15 @@ from application.user_service import UserService
 from presentation.error_generator import get_error_json
 
 
-""" 
-The presentation layer contains all of the classes responsible for presenting the UI to the end-user 
-or sending the response back to the client (in case we’re operating deep in the back-end).
-
-- It has serialization and deserialization logic. Validations. Authentication.
-"""
-
-
 class UserController:
-    def __init__(self, user_service: UserService, logger):
+    """ 
+    The presentation layer contains all of the classes responsible for presenting the UI to the end-user 
+    or sending the response back to the client (in case we’re operating deep in the back-end).
+
+    - It has serialization and deserialization logic. Validations. Authentication.
+    """
+    def __init__(self, user_service: UserService):
         self.user_service = user_service
-        self.log = logger
         return
 
     def _serialize_user(self, user):
@@ -69,7 +66,7 @@ class UserController:
 
         users = self.user_service.get_users()  # list of instance of Users() (domain)
         users = [self._serialize_user(user) for user in users]
-        self.log.debug(f"DEBUG: in controller: users is {users}")
+        current_app.logger.debug(f"DEBUG: in controller: users is {users}")
 
         return {"response": jsonify({"data": users}), "code_status": 200}
 
@@ -90,7 +87,7 @@ class UserController:
 
         if user:
             user = self._serialize_user(user)
-            self.log.debug(f"DEBUG: user is {user}")
+            current_app.logger.debug(f"DEBUG: user is {user}")
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
@@ -103,9 +100,6 @@ class UserController:
         """
         Delete user.
         """
-        self.log.debug(
-            f"DEBUG: self.get_specific_users(uuid) delete -> {self.get_specific_users(uuid)}"
-        )
 
         if self.get_specific_users(uuid)["code_status"] == 200:
             self.user_service.delete(uuid)
@@ -122,12 +116,12 @@ class UserController:
         Create a users.
         In Flask: uuid.UUID is serialized to a string.
         """
-        self.log.debug(f"DEBUG: request in create_users -> {request}")
+        current_app.logger.debug(f"DEBUG: request in create_users -> {request}")
         url = "/users"
 
         if request.is_json:
             user = request.get_json()
-            self.log.debug(f"DEBUG: json in create_users -> {user}")
+            current_app.logger.debug(f"DEBUG: json in create_users -> {user}")
 
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
@@ -174,16 +168,13 @@ class UserController:
                 "response": get_error_json(BAD_REQUEST, msg, f"/users/<uuid:user_id>/location", "POST"),
                 "code_status": 400,
             }
-        self.log.debug(
-            f"DEBUG: self.get_specific_users(user_id) is {self.get_specific_users(user_id)}"
-        )
 
         if self.get_specific_users(user_id)["code_status"] == 200:
-            self.log.debug("User exists")
+            current_app.logger.debug("User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {"response": jsonify({"result": PUT_LOCATION}), "code_status": 200}
 
-        self.log.debug("User not exists")
+        current_app.logger.debug("User not exists")
         return {
             "response": get_error_json(NOT_USER, f"uuid {user_id} was not found", f"/users/<uuid:user_id>/location", "POST"),
             "code_status": 404,
@@ -211,7 +202,6 @@ class UserController:
 
         except (TypeError, ValueError) as e:
             msg = f"Invalid location data: {e}"
-            self.log.error(msg)
             return False, msg
 
     def _check_create_user_params(self, user_params):
@@ -223,7 +213,6 @@ class UserController:
 
         if len(missing_params) > 0:
             msg = f"Missing params: {', '.join(missing_params)}"
-            self.log.error(msg)
             return False, msg
 
         return True, "Ok."
@@ -240,8 +229,8 @@ class UserController:
             email = data["email"]  # This contains mail
             password = data["password"]  # This contains password
 
-            self.log.debug(f"DEBUG: email is {email}")
-            self.log.debug(f"DEBUG: password is {password}")
+            current_app.logger.debug(f"DEBUG: email is {email}")
+            current_app.logger.debug(f"DEBUG: password is {password}")
 
             # Check if the email and password are in the request
             # If this exists, this bring us the id of the user
@@ -254,14 +243,14 @@ class UserController:
                 }
 
             user_serialized_from_db = self.user_service.get_specific_users(
-                user_exists
+                user_exists.uuid
             )  # we get the instance
 
             user_serialized_from_db = self._serialize_user(
                 user_serialized_from_db
             )  # Serialize the instance
 
-            self.log.debug(
+            current_app.logger.debug(
                 f"DEBUG: user_serialized_from_db is {user_serialized_from_db}"
             )
 
@@ -278,8 +267,8 @@ class UserController:
                 session["user"] = email
                 # session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
 
-                self.log.debug(f"DEBUG: User {email} logged in")
-                self.log.debug(f"DEBUG: session is {session}")
+                current_app.logger.debug(f"DEBUG: User {email} logged in")
+                current_app.logger.debug(f"DEBUG: session is {session}")
                 return {
                     # Mail exists contain the user data.
                     "response": jsonify({"data": user_serialized_from_db}),
@@ -366,7 +355,7 @@ class UserController:
         """
         Login específico para administradores.
         """
-        login_result = self.login_users(request)
+        login_result = current_app.loggerin_users(request)
 
         if login_result["code_status"] != 200:
             return login_result
@@ -399,10 +388,10 @@ class UserController:
         """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
-            self.log.info("In TEST, without session expiration.")
+            current_app.logger.info("In TEST, without session expiration.")
             return None
         else:
-            self.log.info("Check if the session has expired.")
+            current_app.logger.info("Check if the session has expired.")
 
         if "user" not in session:
             return {
@@ -416,21 +405,21 @@ class UserController:
         """
         Login a user with google
         """
-        self.log.info(f"In controller with request: {request}")
+        current_app.logger.info(f"In controller with request: {request}")
         role = request.args.get("role", "student")
-        self.log.info(f"In controller - role: {role}")
+        current_app.logger.info(f"In controller - role: {role}")
         return self.user_service.login_user_with_google(role)
 
     def authorize(self, request):
         user_info = self.user_service.authorize()
-        self.log.info(f"In controller - user_info: {user_info}")
+        current_app.logger.info(f"In controller - user_info: {user_info}")
 
         if user_info:
             user_info["role"] = request.args.get("state", "student")
             user_info["status"] = "enabled"
             user = self.user_service.create_users_if_not_exist(user_info)
             user = self._serialize_user(user)
-            self.log.debug(f"In controller - user: {user}")
+            current_app.logger.debug(f"In controller - user: {user}")
 
             user_email = user["email"]
             session["user"] = user_email
@@ -451,7 +440,7 @@ class UserController:
 
     def authorize_with_token(self, request):
         data = request.get_json()
-        self.log.debug(f"Data: {data}")
+        current_app.logger.debug(f"Data: {data}")
         token = data.get("token")
 
         user_info = self.user_service.verify_google_token(token)
@@ -491,7 +480,7 @@ class UserController:
             "role",
         ]
         data = request.get_json()
-        self.log.debug(f"Data: {data}")
+        current_app.logger.debug(f"Data: {data}")
         if self._validate_request(data, params) == False:
             return {
                 "response": jsonify(
@@ -544,7 +533,7 @@ class UserController:
             "photo",
         ]
         data = request.get_json()
-        self.log.debug(f"Data: {data}")
+        current_app.logger.debug(f"Data: {data}")
 
         if self._validate_request(data, params) == False:
             return {
