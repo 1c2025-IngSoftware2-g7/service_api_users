@@ -30,24 +30,6 @@ services:
       timeout: 2s
       retries: 10
 
-  test:
-    build: .
-    environment:
-      - FLASK_ENV=testing
-      - PYTHONPATH=/src/app
-    depends_on:
-      db:
-        condition: service_started
-      app:
-        condition: service_healthy
-    networks:
-      - users_network
-    command: pytest --cov=src --cov-report=xml:/coverage/coverage.xml tests/
-    volumes:
-      - ./coverage:/coverage
-    env_file:
-      - .env
-
 networks:
   users_network:
     driver: bridge

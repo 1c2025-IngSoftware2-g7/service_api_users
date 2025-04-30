@@ -9,15 +9,11 @@ def mock_oauth():
     return MagicMock()
 
 @pytest.fixture
-def mock_logger():
-    return MagicMock()
-
-@pytest.fixture
-def google_service(mock_oauth, mock_logger):
+def google_service(mock_oauth):
     os.environ["GOOGLE_CLIENT_ID"] = "fake-client-id"
     os.environ["GOOGLE_CLIENT_SECRET"] = "fake-secret"
     os.environ["OAUTH_REDIRECT_URI"] = "http://localhost/oauth2callback"
-    return GoogleService(mock_oauth, mock_logger)
+    return GoogleService(mock_oauth)
 
 
 def test_authorize_redirect(google_service):
@@ -85,7 +81,6 @@ def test_verify_google_token_invalid_email(mock_request, mock_verify, google_ser
 
     result = google_service.verify_google_token("invalid.token")
     assert result is None
-    google_service.log.error.assert_called_once()
 
 
 @patch("application.google_service.id_token.verify_oauth2_token", side_effect=ValueError("Invalid Token"))
@@ -93,4 +88,3 @@ def test_verify_google_token_invalid_email(mock_request, mock_verify, google_ser
 def test_verify_google_token_raises_exception(mock_request, mock_verify, google_service):
     result = google_service.verify_google_token("broken.token")
     assert result is None
-    google_service.log.error.assert_called_once()

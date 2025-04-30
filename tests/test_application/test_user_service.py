@@ -8,9 +8,8 @@ from application.user_service import UserService
 def user_service():
     mock_repo = MagicMock()
     mock_google = MagicMock()
-    mock_logger = MagicMock()
-    service = UserService(mock_repo, mock_google, mock_logger)
-    return service, mock_repo, mock_google, mock_logger
+    service = UserService(mock_repo, mock_google)
+    return service, mock_repo, mock_google
 
 
 def test_get_users(user_service):
@@ -65,26 +64,25 @@ def test_set_location(user_service):
 
 def test_mail_exists(user_service):
     service, repo, *_ = user_service
-    repo.check_email.return_value = True
+    repo.get_user_with_email.return_value = True
 
     result = service.mail_exists("mail@test.com")
 
     assert result is True
-    repo.check_email.assert_called_once_with("mail@test.com")
+    repo.get_user_with_email.assert_called_once_with("mail@test.com")
 
 
 def test_login_user_with_google(user_service):
-    service, _, google, logger = user_service
+    service, _, google = user_service
     google.authorize_redirect.return_value = "redirect_url"
 
     result = service.login_user_with_google("admin")
 
     assert result == "redirect_url"
-    logger.info.assert_called()
 
 
 def test_authorize(user_service):
-    service, _, google, logger = user_service
+    service, _, google = user_service
     google.authorize_access_token.return_value = "token"
     google.get_user_info.return_value = {"email": "test@test.com"}
 
@@ -93,66 +91,60 @@ def test_authorize(user_service):
     assert result["email"] == "test@test.com"
     google.authorize_access_token.assert_called_once()
     google.get_user_info.assert_called_once()
-    logger.info.assert_called()
 
 
 def test_create_users_if_not_exist_user_exists(user_service):
-    service, repo, _, logger = user_service
+    service, repo, _ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.create_users_if_not_exist({"email": "test@test.com"})
 
     assert result["email"] == "test@test.com"
     repo.insert_user.assert_not_called()
-    logger.info.assert_called()
 
 
 def test_create_users_if_not_exist_user_not_exists(user_service):
-    service, repo, _, logger = user_service
+    service, repo, _ = user_service
     repo.get_user_with_email.side_effect = [None, {"email": "test@test.com"}]
 
     result = service.create_users_if_not_exist({"email": "test@test.com"})
 
     assert result["email"] == "test@test.com"
     repo.insert_user.assert_called_once()
-    logger.info.assert_called()
 
 
 def test_verify_user_existence(user_service):
-    service, repo, _, logger = user_service
+    service, repo, _ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.verify_user_existence({"email": "test@test.com"})
 
     assert result["email"] == "test@test.com"
     repo.get_user_with_email.assert_called_once()
-    logger.info.assert_called()
 
 
 def test_create_users_already_exists(user_service):
-    service, repo, _, logger = user_service
+    service, repo, _ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.create_users({"email": "test@test.com"})
 
     assert result["email"] == "test@test.com"
     repo.insert_user.assert_not_called()
-    logger.info.assert_called()
 
 
 def test_create_users_not_exists(user_service):
-    service, repo, _, logger = user_service
+    service, repo, _ = user_service
     repo.get_user_with_email.side_effect = [None, {"email": "test@test.com"}]
 
     result = service.create_users({"email": "test@test.com"})
 
     assert result["email"] == "test@test.com"
     repo.insert_user.assert_called_once()
-    logger.info.assert_called()
 
 
 def test_verify_google_token(user_service):
-    service, _, google, _ = user_service
+    service, _, google = user_service
     google.verify_google_token.return_value = {"valid": True}
 
     result = service.verify_google_token("sometoken")

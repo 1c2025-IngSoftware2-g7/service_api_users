@@ -27,8 +27,7 @@ def mock_user():
 @pytest.fixture
 def controller(mock_user):
     mock_service = MagicMock()
-    mock_logger = MagicMock()
-    controller = UserController(user_service=mock_service, logger=mock_logger)
+    controller = UserController(user_service=mock_service)
     return controller
 
 def test_get_users_returns_200(app, controller, mock_user):

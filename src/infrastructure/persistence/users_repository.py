@@ -1,16 +1,16 @@
+from werkzeug.security import generate_password_hash
+from flask import current_app
+
 from domain.location import Location
 from infrastructure.persistence.base_entity import BaseEntity
 from domain.user import User
-from werkzeug.security import generate_password_hash
-
 
 class UsersRepository(BaseEntity):
-    def __init__(self, logger):
-        self.log = logger
+    def __init__(self):
         super().__init__()
 
     def _parse_user(self, user_params):
-        self.log.debug(f"user_params is {user_params}")
+        current_app.logger.debug(f"user_params is {user_params}")
 
         location = None
         if "location" in user_params and user_params["location"] is not None:
@@ -52,7 +52,7 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query)
         users = self.cursor.fetchall()
-        self.log.debug(f"DEBUG: users is {users}")
+        current_app.logger.debug(f"DEBUG: users is {users}")
 
         # Returns an instance of the domain:
         result = []
@@ -153,12 +153,11 @@ class UsersRepository(BaseEntity):
         self.conn.commit()
         return
 
-    """
-    Try inserting a new row into the user_locations table.
-    If the UUID already exists (primary key conflict), then update the latitude and longitude.
-    """
-
     def set_location(self, params_new_user):
+        """
+        Try inserting a new row into the user_locations table.
+        If the UUID already exists (primary key conflict), then update the latitude and longitude.
+        """
         query = """
         INSERT INTO user_locations (uuid, latitude, longitude)
         VALUES (%s, %s, %s)
@@ -176,13 +175,12 @@ class UsersRepository(BaseEntity):
         self.conn.commit()
         return
 
-    """ 
-    Function that check if a mail is valid on the database
-    returns the id of the user if it exists
-    else returns None
-    """
-
     def check_email(self, email):
+        """ 
+        Function that check if a mail is valid on the database
+        returns the id of the user if it exists
+        else returns None
+        """
         query = "SELECT * FROM users u WHERE email = %s"
         params = (email,)
 

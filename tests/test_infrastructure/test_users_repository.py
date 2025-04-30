@@ -20,11 +20,6 @@ def uuid_2():
     return uuid.uuid4()
 
 @pytest.fixture
-def mock_logger():
-    return MagicMock()
-
-
-@pytest.fixture
 def mock_cursor():
     cursor = MagicMock()
     cursor.execute = MagicMock()
@@ -41,8 +36,8 @@ def mock_db_connection(mock_cursor):
 
 """ Simulate the database connection in the constructor """
 @pytest.fixture
-def users_repository(mock_logger, mock_db_connection):
-    repository = UsersRepository(mock_logger)
+def users_repository(mock_db_connection):
+    repository = UsersRepository()
     repository.conn = mock_db_connection
     repository.cursor = mock_db_connection.cursor()
     return repository
