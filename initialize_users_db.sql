@@ -54,3 +54,6 @@ CREATE TABLE IF NOT EXISTS user_locations (
     longitude DOUBLE PRECISION NOT NULL,
     FOREIGN KEY (uuid) REFERENCES users(uuid) ON DELETE CASCADE
 );
+
+INSERT INTO users (name, surname, password, email, status, role)
+VALUES ('Admin', 'Admin', '123456789', 'admin@admin.com', 'enabled', 'admin');
