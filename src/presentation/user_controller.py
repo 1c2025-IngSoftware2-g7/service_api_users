@@ -355,7 +355,7 @@ class UserController:
         """
         Login específico para administradores.
         """
-        login_result = current_app.loggerin_users(request)
+        login_result = self.login_users(request)
 
         if login_result["code_status"] != 200:
             return login_result
