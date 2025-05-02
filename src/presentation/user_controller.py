@@ -426,15 +426,7 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": NOT_USER,
-                    "status": 0,
-                    "detail": f"User not authorized by Google",
-                    "instance": f"/users/authorize",
-                }
-            ),
+            "response": get_error_json(NOT_USER, "User not authorized by Google", "/users/authorize"),
             "code_status": 404,
         }
 
@@ -446,15 +438,7 @@ class UserController:
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
             return {
-                "response": jsonify(
-                    {
-                        "type": "about:blank",
-                        "title": NOT_USER,
-                        "status": 0,
-                        "detail": f"Token inválido",
-                        "instance": f"/users/authorize",
-                    }
-                ),
+                "response": get_error_json(NOT_USER, "Token inválido", "/users/authorize"),
                 "code_status": 401,
             }
 
@@ -483,15 +467,7 @@ class UserController:
         current_app.logger.debug(f"Data: {data}")
         if self._validate_request(data, params) == False:
             return {
-                "response": jsonify(
-                    {
-                        "type": "about:blank",
-                        "title": BAD_REQUEST,
-                        "status": 0,
-                        "detail": f"{BAD_REQUEST}: request should have {params}",
-                        "instance": f"/users/signup/google",
-                    }
-                ),
+                "response": get_error_json(BAD_REQUEST, "Request should have {params}", "/users/signup/google"),
                 "code_status": 401,
             }
 
@@ -499,15 +475,7 @@ class UserController:
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
             return {
-                "response": jsonify(
-                    {
-                        "type": "about:blank",
-                        "title": NOT_USER,
-                        "status": 0,
-                        "detail": f"Token inválido",
-                        "instance": f"/users/signup/google",
-                    }
-                ),
+                "response": get_error_json(NOT_USER, "Token inválido", "/users/signup/google"),
                 "code_status": 401,
             }
 
@@ -537,15 +505,7 @@ class UserController:
 
         if self._validate_request(data, params) == False:
             return {
-                "response": jsonify(
-                    {
-                        "type": "about:blank",
-                        "title": BAD_REQUEST,
-                        "status": 0,
-                        "detail": f"{BAD_REQUEST}: request should have {params}",
-                        "instance": f"/users/login/google",
-                    }
-                ),
+                "response": get_error_json(BAD_REQUEST, "Request should have {params}", "/users/login/google"),
                 "code_status": 401,
             }
 
@@ -566,15 +526,7 @@ class UserController:
             detail = "Token invalid"
 
         return {
-            "response": jsonify(
-                {
-                    "type": "about:blank",
-                    "title": NOT_USER,
-                    "status": 0,
-                    "detail": detail,
-                    "instance": f"/users/login/google",
-                }
-            ),
+            "response": get_error_json(NOT_USER, detail, "/users/login/google"),
             "code_status": 401,
         }
 
