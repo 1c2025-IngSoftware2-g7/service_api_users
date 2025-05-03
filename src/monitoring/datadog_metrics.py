@@ -7,7 +7,7 @@ DATADOG_API_KEY = os.getenv('DATADOG_API_KEY')
 DATADOG_API_URL = 'https://api.datadoghq.com/api/v1/series'
 SERVICE_NAME = os.getenv('SERVICE_NAME', 'users')
 
-def send_metric(metric_name, value, tags="users", metric_type="gauge"):
+def send_metric(metric_name, value, tags=None, metric_type="gauge"):
     current_app.logger.debug(f"Send metric to Datadog: {metric_name}:{value}")
     if not DATADOG_API_KEY:
         print("Missing Datadog API key. Skipping metric send.")
@@ -24,7 +24,7 @@ def send_metric(metric_name, value, tags="users", metric_type="gauge"):
                 "metric": metric_name,
                 "points": [[time.time(), value]],
                 "type": metric_type,   # gauge, count, rate
-                "tags": (tags or []) + [f"service:{SERVICE_NAME}"]
+                "tags": (tags if isinstance(tags, list) else []) + [f"service:{SERVICE_NAME}"]
             }
         ]
     }
