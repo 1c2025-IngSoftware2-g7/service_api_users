@@ -1,3 +1,6 @@
+from ddtrace import patch_all
+patch_all()
+
 from datetime import timedelta
 import logging
 import os
