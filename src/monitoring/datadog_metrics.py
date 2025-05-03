@@ -10,7 +10,7 @@ SERVICE_NAME = os.getenv('SERVICE_NAME', 'users')
 def send_metric(metric_name, value, tags=None, metric_type="gauge"):
     current_app.logger.debug(f"Send metric to Datadog: {metric_name}:{value}")
     if not DATADOG_API_KEY:
-        print("Missing Datadog API key. Skipping metric send.")
+        current_app.logger.error("Missing Datadog API key. Skipping metric send.")
         return
 
     headers = {
