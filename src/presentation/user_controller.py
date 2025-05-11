@@ -535,3 +535,27 @@ class UserController:
             if param not in request:
                 return False
         True
+
+    def initiate_password_recovery(self, email):
+        """Controlador para el inicio de recuperación de contraseña"""
+        try:
+            result = self.user_service.initiate_password_recovery(email)
+            if "pin" in result:  # Si hay PIN en la respuesta
+                return {
+                    "response": jsonify({
+                        "message": result["message"],
+                        "pin": result["pin"]  # ← Asegurar que el PIN se incluye
+                    }),
+                    "code_status": result["code"]
+                }
+            return {
+                "response": jsonify({"message": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(
+                f"Error en recuperación de contraseña: {str(e)}")
+            return {
+                "response": jsonify({"error": "Ocurrió un error al procesar la solicitud"}),
+                "code_status": 500
+            }

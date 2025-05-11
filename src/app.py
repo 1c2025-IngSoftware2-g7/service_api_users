@@ -228,3 +228,15 @@ def post_login_google():
     result = user_controller.authorize_login_token(request)
     return result["response"], result["code_status"]
 
+
+@users_app.post("/users/<string:user_email>/password-recovery")
+def password_recovery(user_email):
+    """
+    Iniciar proceso de recuperación de contraseña
+    responses:
+      200:description: PIN de recuperación generado exitosamente
+      404:description: No existe usuario con ese email
+      429:description: Ya existe un PIN activo para este usuario
+    """
+    result = user_controller.initiate_password_recovery(user_email)
+    return result["response"], result["code_status"]

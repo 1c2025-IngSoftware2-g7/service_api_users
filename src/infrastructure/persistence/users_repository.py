@@ -193,3 +193,27 @@ class UsersRepository(BaseEntity):
             return id
 
         return None
+
+    def get_active_pin(self, user_id, pin_type):
+        """Obtener un PIN activo no usado y no expirado"""
+        query = """
+        SELECT pin_code, created_at
+        FROM pins
+        WHERE user_id = %s
+        AND pin_type = %s
+        AND used = FALSE
+        AND created_at > NOW() - INTERVAL '10 minutes'
+        LIMIT 1
+        """
+        self.cursor.execute(query, (str(user_id), pin_type))
+        return self.cursor.fetchone()
+
+
+    def create_pin(self, user_id, pin_code, pin_type):
+        """Crear un nuevo PIN en la base de datos"""
+        query = """
+        INSERT INTO pins (user_id, pin_code, pin_type)
+        VALUES (%s, %s, %s)
+        """
+        self.cursor.execute(query, (str(user_id), pin_code, pin_type))
+        self.conn.commit()

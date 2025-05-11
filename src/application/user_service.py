@@ -1,4 +1,6 @@
 from flask import current_app
+import random
+import string
 
 from infrastructure.persistence.users_repository import UsersRepository
 
@@ -99,3 +101,33 @@ class UserService:
 
     def verify_google_token(self, token):
         return self.google.verify_google_token(token)
+
+    def initiate_password_recovery(self, email):
+        """Iniciar el proceso de recuperación de contraseña"""
+        user = self.user_repository.get_user_with_email(email)
+        if not user:
+            return {"error": "No existe ningún usuario con ese email", "code": 404}
+
+        # Verificar si ya existe un PIN activo
+        existing_pin = self.user_repository.get_active_pin(
+            user.uuid, "password_recovery")
+        if existing_pin:
+            return {
+                "error": "Ya hay un PIN activo para este usuario. Por favor espera 10 minutos.",
+                "code": 429
+            }
+
+        # Generar PIN de 6 dígitos
+        pin_code = ''.join(random.choices(string.digits, k=6))
+
+        # Guardar el PIN
+        self.user_repository.create_pin(user.uuid, pin_code, "password_recovery")
+
+        # En producción aquí iría el envío del email
+        current_app.logger.info(f"PIN generado para {email}: {pin_code}")
+
+        return {
+            "message": "Proceso de recuperación iniciado",
+            "pin": pin_code,  # ← PIN incluido en la respuesta
+            "code": 200
+        }
