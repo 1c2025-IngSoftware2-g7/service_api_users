@@ -131,3 +131,47 @@ class UserService:
             "pin": pin_code,  # ← PIN incluido en la respuesta
             "code": 200
         }
+
+    def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
+        """Valida un PIN de recuperación de contraseña"""
+        if not email or not pin_code:
+            return {"error": "Email y PIN son requeridos", "code": 400}
+
+        user = self.user_repository.get_user_with_email(email)
+        if not user:
+            return {"error": "No existe ningún usuario con ese email", "code": 404}
+
+
+        is_valid = self.user_repository.validate_and_use_pin(
+            email=email,
+            pin_code=pin_code,
+            pin_type="password_recovery"
+        )
+
+        if not is_valid:
+            return {
+                "error": "PIN inválido o expirado. Por favor genera uno nuevo",
+                "code": 401
+            }
+
+        return {"message": "PIN validado correctamente", "code": 200}
+
+    def update_password(self, email, new_password):
+        """Actualiza la contraseña de un usuario"""
+        if not email or not new_password:
+            return {"error": "Email y nueva contraseña son requeridos", "code": 400}
+
+        # Verificar que el usuario existe
+        user = self.user_repository.get_user_with_email(email)
+        if not user:
+            return {"error": "No existe ningún usuario con ese email", "code": 404}
+
+        # Actualizar contraseña
+        success = self.user_repository.update_user_password(email, new_password)
+        if not success:
+            return {"error": "Error al actualizar la contraseña", "code": 500}
+
+        # Invalidar todos los PINs existentes
+        self.user_repository.invalidate_all_pins(user.uuid)
+
+        return {"message": "Contraseña actualizada exitosamente", "code": 200}

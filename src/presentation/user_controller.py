@@ -559,3 +559,35 @@ class UserController:
                 "response": jsonify({"error": "Ocurrió un error al procesar la solicitud"}),
                 "code_status": 500
             }
+
+    def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
+        """Controlador para validación de PIN"""
+        try:
+            result = self.user_service.validate_recovery_pin(email, pin_code)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN"}),
+                "code_status": 500
+            }
+
+    def update_password(self, email, new_password):
+        """Controlador para actualización de contraseña"""
+        try:
+            result = self.user_service.update_password(email, new_password)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error actualizando contraseña: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error actualizando contraseña"}),
+                "code_status": 500
+            }

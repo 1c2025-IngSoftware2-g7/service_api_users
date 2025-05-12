@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 import os
 import time
-from flask import Flask, request, g
+from flask import Flask, request, jsonify, g
 from authlib.integrations.flask_client import OAuth
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -239,4 +239,40 @@ def password_recovery(user_email):
       429:description: Ya existe un PIN activo para este usuario
     """
     result = user_controller.initiate_password_recovery(user_email)
+    return result["response"], result["code_status"]
+
+
+@users_app.put("/users/<string:user_email>/password-recovery")
+def validate_recovery_pin(user_email):
+    """
+    Validar PIN de recuperación de contraseña
+    responses:
+      200: description: PIN validado correctamente
+      400: description: Datos faltantes
+      401: description: PIN inválido o expirado
+    """
+    data = request.get_json()
+    if not data or 'pin' not in data:
+        return jsonify({"error": "Se requiere el campo 'pin'"}), 400
+
+    pin_code = data['pin']
+    result = user_controller.validate_recovery_pin(user_email, pin_code)
+    return result["response"], result["code_status"]
+
+
+@users_app.put("/users/<string:user_email>/password")
+def update_password(user_email):
+    """
+    Actualizar contraseña de usuario
+    responses:
+      200: description: Contraseña actualizada exitosamente
+      400: description: Datos faltantes
+      404: description: Usuario no encontrado
+    """
+    data = request.get_json()
+    if not data or 'new_password' not in data:
+        return jsonify({"error": "Se requiere el campo 'new_password'"}), 400
+
+    new_password = data['new_password']
+    result = user_controller.update_password(user_email, new_password)
     return result["response"], result["code_status"]

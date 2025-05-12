@@ -217,3 +217,47 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query, (str(user_id), pin_code, pin_type))
         self.conn.commit()
+
+    def validate_and_use_pin(self, email: str, pin_code: str, pin_type: str) -> bool:
+        """Valida un PIN y lo marca como usado si es válido"""
+        query = """
+        UPDATE pins p
+        SET used = TRUE
+        FROM users u
+        WHERE p.user_id = u.uuid
+        AND u.email = %s
+        AND p.pin_code = %s
+        AND p.pin_type = %s
+        AND p.used = FALSE
+        AND p.created_at > NOW() - INTERVAL '10 minutes'
+        RETURNING p.pin_id
+        """
+        self.cursor.execute(query, (email, pin_code, pin_type))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        return bool(result)
+
+    def update_user_password(self, email, new_password):
+        """Actualiza la contraseña de un usuario"""
+        query = """
+        UPDATE users
+        SET password = %s
+        WHERE email = %s
+        RETURNING uuid
+        """
+        hashed_password = generate_password_hash(new_password)
+        self.cursor.execute(query, (hashed_password, email))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        return bool(result)
+
+
+    def invalidate_all_pins(self, user_id):
+        """Marca todos los PINs de un usuario como usados"""
+        query = """
+        UPDATE pins
+        SET used = TRUE
+        WHERE user_id = %s
+        """
+        self.cursor.execute(query, (str(user_id),))
+        self.conn.commit()
