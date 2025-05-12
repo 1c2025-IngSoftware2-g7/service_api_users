@@ -535,3 +535,99 @@ class UserController:
             if param not in request:
                 return False
         True
+
+    def initiate_password_recovery(self, email):
+        """Controlador para el inicio de recuperación de contraseña"""
+        try:
+            result = self.user_service.initiate_password_recovery(email)
+            if "pin" in result:  # Si hay PIN en la respuesta
+                return {
+                    "response": jsonify({
+                        "message": result["message"],
+                        "pin": result["pin"]  # ← Asegurar que el PIN se incluye
+                    }),
+                    "code_status": result["code"]
+                }
+            return {
+                "response": jsonify({"message": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(
+                f"Error en recuperación de contraseña: {str(e)}")
+            return {
+                "response": jsonify({"error": "Ocurrió un error al procesar la solicitud"}),
+                "code_status": 500
+            }
+
+    def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
+        """Controlador para validación de PIN"""
+        try:
+            result = self.user_service.validate_recovery_pin(email, pin_code)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN"}),
+                "code_status": 500
+            }
+
+    def update_password(self, email, new_password):
+        """Controlador para actualización de contraseña"""
+        try:
+            result = self.user_service.update_password(email, new_password)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error actualizando contraseña: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error actualizando contraseña"}),
+                "code_status": 500
+            }
+
+    def initiate_registration_confirmation(self, email: str) -> dict:
+        """Controlador para inicio de confirmación de registro"""
+        try:
+            result = self.user_service.initiate_registration_confirmation(email)
+            if "pin" in result:
+                return {
+                    "response": jsonify({
+                        "message": result["message"],
+                        "pin": result["pin"]
+                    }),
+                    "code_status": result["code"]
+                }
+            return {
+                "response": jsonify({"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(
+                f"Error en confirmación de registro: {str(e)}")
+            return {
+                "response": jsonify({"error": "Ocurrió un error al procesar la solicitud"}),
+                "code_status": 500
+            }
+
+    def validate_registration_pin(self, email, pin_code):
+        """Controlador para validación de PIN de registro"""
+        try:
+            result = self.user_service.validate_registration_pin(email, pin_code)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN de registro: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN de registro"}),
+                "code_status": 500
+            }
