@@ -591,3 +591,43 @@ class UserController:
                 "response": jsonify({"error": "Error actualizando contraseña"}),
                 "code_status": 500
             }
+
+    def initiate_registration_confirmation(self, email: str) -> dict:
+        """Controlador para inicio de confirmación de registro"""
+        try:
+            result = self.user_service.initiate_registration_confirmation(email)
+            if "pin" in result:
+                return {
+                    "response": jsonify({
+                        "message": result["message"],
+                        "pin": result["pin"]
+                    }),
+                    "code_status": result["code"]
+                }
+            return {
+                "response": jsonify({"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(
+                f"Error en confirmación de registro: {str(e)}")
+            return {
+                "response": jsonify({"error": "Ocurrió un error al procesar la solicitud"}),
+                "code_status": 500
+            }
+
+    def validate_registration_pin(self, email, pin_code):
+        """Controlador para validación de PIN de registro"""
+        try:
+            result = self.user_service.validate_registration_pin(email, pin_code)
+            return {
+                "response": jsonify({"message": result["message"]} if "message" in result
+                                    else {"error": result["error"]}),
+                "code_status": result["code"]
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN de registro: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN de registro"}),
+                "code_status": 500
+            }

@@ -261,3 +261,16 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query, (str(user_id),))
         self.conn.commit()
+
+    def activate_user(self, email):
+        """Activa un usuario en la base de datos"""
+        query = """
+        UPDATE users
+        SET status = 'active'
+        WHERE email = %s
+        RETURNING uuid
+        """
+        self.cursor.execute(query, (email,))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        return bool(result)

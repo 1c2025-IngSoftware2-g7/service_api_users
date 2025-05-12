@@ -175,3 +175,58 @@ class UserService:
         self.user_repository.invalidate_all_pins(user.uuid)
 
         return {"message": "Contraseña actualizada exitosamente", "code": 200}
+
+    def initiate_registration_confirmation(self, email):
+        """Iniciar el proceso de confirmación de registro"""
+        user = self.user_repository.get_user_with_email(email)
+        if not user:
+            return {"error": "No existe ningún usuario con ese email", "code": 404}
+
+        # Verificar si ya existe un PIN activo
+        existing_pin = self.user_repository.get_active_pin(
+            user.uuid, "registration")
+        if existing_pin:
+            return {
+                "error": "Ya hay un PIN de registro activo para este usuario. Por favor espera 10 minutos.",
+                "code": 429
+            }
+
+        # Generar PIN de 6 dígitos
+        pin_code = ''.join(random.choices(string.digits, k=6))
+
+        # Guardar el PIN
+        self.user_repository.create_pin(user.uuid, pin_code, "registration")
+
+        # Devolver el PIN para que el frontend lo envíe por email/SMS
+        return {
+            "message": "PIN de confirmación de registro generado",
+            "pin": pin_code,  # Frontend lo enviará al usuario
+            "code": 200
+        }
+
+    def validate_registration_pin(self, email, pin_code):
+        """Valida un PIN de confirmación de registro"""
+        if not email or not pin_code:
+            return {"error": "Email y PIN son requeridos", "code": 400}
+
+        # Verificar que el usuario existe
+        user = self.user_repository.get_user_with_email(email)
+        if not user:
+            return {"error": "No existe ningún usuario con ese email", "code": 404}
+
+        # Validar el PIN
+        is_valid = self.user_repository.validate_and_use_pin(
+            email=email,
+            pin_code=pin_code,
+            pin_type="registration"
+        )
+
+        if not is_valid:
+            return {
+                "error": "PIN de registro inválido o expirado. Por favor solicita uno nuevo",
+                "code": 401
+            }
+
+        self.user_repository.activate_user(email)
+
+        return {"message": "Cuenta verificada exitosamente", "code": 200}

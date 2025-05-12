@@ -276,3 +276,35 @@ def update_password(user_email):
     new_password = data['new_password']
     result = user_controller.update_password(user_email, new_password)
     return result["response"], result["code_status"]
+
+
+@users_app.post("/users/<string:user_email>/confirm-registration")
+def registration_confirmation(user_email):
+    """
+    Iniciar proceso de confirmación de registro
+    responses:
+      200: description: PIN de confirmación generado
+      404: description: Usuario no encontrado
+      429: description: Ya existe un PIN activo
+    """
+    result = user_controller.initiate_registration_confirmation(user_email)
+    return result["response"], result["code_status"]
+
+
+@users_app.put("/users/<string:user_email>/confirm-registration")
+def validate_registration_pin(user_email):
+    """
+    Validar PIN de confirmación de registro
+    responses:
+      200: description: Cuenta verificada exitosamente
+      400: description: Datos faltantes
+      401: description: PIN inválido o expirado
+      404: description: Usuario no encontrado
+    """
+    data = request.get_json()
+    if not data or 'pin' not in data:
+        return jsonify({"error": "Se requiere el campo 'pin'"}), 400
+
+    pin_code = data['pin']
+    result = user_controller.validate_registration_pin(user_email, pin_code)
+    return result["response"], result["code_status"]
