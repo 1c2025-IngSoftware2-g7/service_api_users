@@ -421,6 +421,7 @@ class UserController:
             # Session created, we assign whatever for this session, we dont care
             session["user"] = user_data
             session.permanent = True  # this sets the session permanent
+            current_app.logger.debug(f"DEBUG: session is {session}")
             return {
                 "response": jsonify(
                     {"message": ADMIN_LOGIN_SUCCESS, "data": user_data}
@@ -452,6 +453,7 @@ class UserController:
             current_app.logger.info("Check if the session has expired.")
 
         if "user" not in session or not session.permanent:
+            current_app.logger.info(f"Session: {session}")
             current_app.logger.info("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
