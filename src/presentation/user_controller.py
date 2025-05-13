@@ -284,7 +284,7 @@ class UserController:
                 user_serialized_from_db["role"] == "admin"
                 and user_serialized_from_db["password"] == password
             ):
-                session["user"] = email
+                # session["user"] = email
 
                 return {
                     "response": jsonify({"data": user_serialized_from_db}),
