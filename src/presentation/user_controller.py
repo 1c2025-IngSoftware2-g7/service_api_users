@@ -357,7 +357,7 @@ class UserController:
 
         # Autentica al admin existente
         admin = self.user_service.mail_exists(data["admin_email"])
-        if not admin or not check_password_hash(admin.email, data["admin_password"]):
+        if not admin or (admin.password != data["admin_password"]):
             return {
                 "response": get_error_json(
                     ADMIN_AUTH_FAILED,
