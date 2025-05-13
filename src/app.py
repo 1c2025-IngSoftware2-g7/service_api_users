@@ -1,4 +1,5 @@
 from ddtrace import patch_all
+
 patch_all()
 
 from datetime import timedelta
@@ -16,7 +17,16 @@ from monitoring.resource_monitor import monitor_resources
 
 
 users_app = Flask(__name__)
-CORS(users_app, origins=["*"], supports_credentials=True, allow_headers=["Content-Type"], methods=["GET", "POST", "OPTIONS"])
+CORS(
+    users_app,
+    origins=["*"],
+    supports_credentials=True,
+    allow_headers=["Content-Type"],
+    methods=["GET", "POST", "OPTIONS"],
+)
+
+users_app.config.update(SESSION_COOKIE_SECURE=True, SESSION_COOKIE_SAMESITE="None")
+
 
 # Session config
 users_app.secret_key = os.getenv("SECRET_KEY_SESSION")
@@ -33,14 +43,10 @@ users_app.logger.setLevel(log_level)
 # Create layers
 user_controller = AppFactory.create(oauth)
 
-SWAGGER_URL = '/docs'
-API_URL = '/static/openapi.yaml'
+SWAGGER_URL = "/docs"
+API_URL = "/static/openapi.yaml"
 swaggerui_blueprint = get_swaggerui_blueprint(
-    SWAGGER_URL, 
-    API_URL,
-    config={ 
-        'app_name': "Users API"
-    }
+    SWAGGER_URL, API_URL, config={"app_name": "Users API"}
 )
 users_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
@@ -49,13 +55,15 @@ users_app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 monitor_resources(interval_seconds=60)
 
+
 @users_app.before_request
 def start_timer():
     g.start_time = time.time()
 
+
 @users_app.after_request
 def log_response_time(response):
-    if not hasattr(g, 'start_time'):
+    if not hasattr(g, "start_time"):
         return response
 
     duration = time.time() - g.start_time
@@ -64,13 +72,14 @@ def log_response_time(response):
         rule = request.url_rule.rule
     except AttributeError:
         rule = request.path  # fallback
-    
+
     endpoint = f"{request.method} {rule}"
 
-    if request.path != '/health':
+    if request.path != "/health":
         report_response_time(endpoint, duration)
 
     return response
+
 
 @users_app.errorhandler(Exception)
 def handle_exception(e):
@@ -87,6 +96,7 @@ def handle_exception(e):
 
 
 # Endpoints:
+
 
 @users_app.get("/health")
 def health_check():
@@ -172,7 +182,7 @@ def login_user_with_google():
     """
     Login a user with google.
 
-    "role" query param is needed. 
+    "role" query param is needed.
     Default: student.
     Ex: '?role=student' or '?role=teacher'.
     """
@@ -192,7 +202,7 @@ def authorize_with_token():
     """
     Authorize token with google.
 
-    "role" query param is needed. 
+    "role" query param is needed.
     Default: student.
     Ex: '?role=student' or '?role=teacher'.
     """
@@ -252,10 +262,10 @@ def validate_recovery_pin(user_email):
       401: description: PIN inválido o expirado
     """
     data = request.get_json()
-    if not data or 'pin' not in data:
+    if not data or "pin" not in data:
         return jsonify({"error": "Se requiere el campo 'pin'"}), 400
 
-    pin_code = data['pin']
+    pin_code = data["pin"]
     result = user_controller.validate_recovery_pin(user_email, pin_code)
     return result["response"], result["code_status"]
 
@@ -270,10 +280,10 @@ def update_password(user_email):
       404: description: Usuario no encontrado
     """
     data = request.get_json()
-    if not data or 'new_password' not in data:
+    if not data or "new_password" not in data:
         return jsonify({"error": "Se requiere el campo 'new_password'"}), 400
 
-    new_password = data['new_password']
+    new_password = data["new_password"]
     result = user_controller.update_password(user_email, new_password)
     return result["response"], result["code_status"]
 
@@ -302,9 +312,9 @@ def validate_registration_pin(user_email):
       404: description: Usuario no encontrado
     """
     data = request.get_json()
-    if not data or 'pin' not in data:
+    if not data or "pin" not in data:
         return jsonify({"error": "Se requiere el campo 'pin'"}), 400
 
-    pin_code = data['pin']
+    pin_code = data["pin"]
     result = user_controller.validate_registration_pin(user_email, pin_code)
     return result["response"], result["code_status"]
