@@ -19,12 +19,13 @@ from presentation.error_generator import get_error_json
 
 
 class UserController:
-    """ 
-    The presentation layer contains all of the classes responsible for presenting the UI to the end-user 
+    """
+    The presentation layer contains all of the classes responsible for presenting the UI to the end-user
     or sending the response back to the client (in case we’re operating deep in the back-end).
 
     - It has serialization and deserialization logic. Validations. Authentication.
     """
+
     def __init__(self, user_service: UserService):
         self.user_service = user_service
         return
@@ -53,7 +54,6 @@ class UserController:
             ),
         }
 
-
     def get_users(self):
         """
         Get all users.
@@ -69,7 +69,6 @@ class UserController:
         current_app.logger.debug(f"DEBUG: in controller: users is {users}")
 
         return {"response": jsonify({"data": users}), "code_status": 200}
-
 
     def get_specific_users(self, uuid):
         """
@@ -91,10 +90,13 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
-            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/<uuid:uuid>"),
+            "response": get_error_json(
+                NOT_USER,
+                f"The users with uuid {uuid} was not found",
+                f"/users/<uuid:uuid>",
+            ),
             "code_status": 404,
         }
-
 
     def delete_specific_users(self, uuid):
         """
@@ -106,10 +108,14 @@ class UserController:
             return {"response": jsonify({"result": DELETE}), "code_status": 204}
 
         return {
-            "response": get_error_json(NOT_USER, f"The users with uuid {uuid} was not found", f"/users/<uuid:uuid>", "DELETE"),
+            "response": get_error_json(
+                NOT_USER,
+                f"The users with uuid {uuid} was not found",
+                f"/users/<uuid:uuid>",
+                "DELETE",
+            ),
             "code_status": 404,
         }
-
 
     def create_users(self, request):
         """
@@ -126,7 +132,12 @@ class UserController:
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
                 return {
-                    "response": get_error_json("Forbidden", "Use /users/admin endpoint to create admins", url, "POST"),
+                    "response": get_error_json(
+                        "Forbidden",
+                        "Use /users/admin endpoint to create admins",
+                        url,
+                        "POST",
+                    ),
                     "code_status": 403,
                 }
 
@@ -142,7 +153,12 @@ class UserController:
 
             if mail_exists is not None:
                 return {
-                    "response": get_error_json(USER_ALREADY_EXISTS, f"The email {user['email']} already exists", url, "POST"),
+                    "response": get_error_json(
+                        USER_ALREADY_EXISTS,
+                        f"The email {user['email']} already exists",
+                        url,
+                        "POST",
+                    ),
                     "code_status": 409,
                 }
 
@@ -151,10 +167,11 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 201}
 
         return {
-            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url, "POST"),
+            "response": get_error_json(
+                BAD_REQUEST, f"with body: {request}", url, "POST"
+            ),
             "code_status": 400,
         }
-
 
     def set_user_location(self, user_id, request):
         """Add location."""
@@ -165,7 +182,9 @@ class UserController:
         result, msg = self._check_location(latitude, longitude)
         if result == False:
             return {
-                "response": get_error_json(BAD_REQUEST, msg, f"/users/<uuid:user_id>/location", "POST"),
+                "response": get_error_json(
+                    BAD_REQUEST, msg, f"/users/<uuid:user_id>/location", "POST"
+                ),
                 "code_status": 400,
             }
 
@@ -176,7 +195,12 @@ class UserController:
 
         current_app.logger.debug("User not exists")
         return {
-            "response": get_error_json(NOT_USER, f"uuid {user_id} was not found", f"/users/<uuid:user_id>/location", "POST"),
+            "response": get_error_json(
+                NOT_USER,
+                f"uuid {user_id} was not found",
+                f"/users/<uuid:user_id>/location",
+                "POST",
+            ),
             "code_status": 404,
         }
 
@@ -216,7 +240,6 @@ class UserController:
             return False, msg
 
         return True, "Ok."
-    
 
     def login_users(self, request):
         """
@@ -238,7 +261,9 @@ class UserController:
 
             if user_exists is None:
                 return {
-                    "response": get_error_json(NOT_USER, f"The email {email} was not found", url, "POST"),
+                    "response": get_error_json(
+                        NOT_USER, f"The email {email} was not found", url, "POST"
+                    ),
                     "code_status": 404,
                 }
 
@@ -255,7 +280,12 @@ class UserController:
             )
 
             # First admin:
-            if user_serialized_from_db["role"] == "admin" and user_serialized_from_db["password"] == password:
+            if (
+                user_serialized_from_db["role"] == "admin"
+                and user_serialized_from_db["password"] == password
+            ):
+                session["user"] = email
+
                 return {
                     "response": jsonify({"data": user_serialized_from_db}),
                     "code_status": 200,
@@ -276,12 +306,16 @@ class UserController:
                 }
             else:
                 return {
-                    "response": get_error_json(WRONG_PASSWORD, "The password is not correct", url, "POST"),
+                    "response": get_error_json(
+                        WRONG_PASSWORD, "The password is not correct", url, "POST"
+                    ),
                     "code_status": 403,
                 }
 
         return {
-            "response": get_error_json(BAD_REQUEST, f"with body: {request}", url, "POST"),
+            "response": get_error_json(
+                BAD_REQUEST, f"with body: {request}", url, "POST"
+            ),
             "code_status": 400,
         }
 
@@ -292,8 +326,12 @@ class UserController:
         """
         url = "/users/admin"
         if not request.is_json:
-            return {"response": get_error_json(BAD_REQUEST, f"{request} is not json", url, "POST"),
-                    "code_status": 400}
+            return {
+                "response": get_error_json(
+                    BAD_REQUEST, f"{request} is not json", url, "POST"
+                ),
+                "code_status": 400,
+            }
 
         data = request.get_json()
 
@@ -308,22 +346,34 @@ class UserController:
         missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:
             return {
-                "response": get_error_json(BAD_REQUEST, f"Missing fields: {', '.join(missing_fields)}", url, "POST"),
+                "response": get_error_json(
+                    BAD_REQUEST,
+                    f"Missing fields: {', '.join(missing_fields)}",
+                    url,
+                    "POST",
+                ),
                 "code_status": 400,
             }
 
         # Autentica al admin existente
         admin = self.user_service.mail_exists(data["admin_email"])
-        if not admin or not check_password_hash(admin.email, data["admin_password"]):
+        if not admin or (admin.password != data["admin_password"]):
             return {
-                "response": get_error_json(ADMIN_AUTH_FAILED, "not admin or not check password hash", url, "POST"),
+                "response": get_error_json(
+                    ADMIN_AUTH_FAILED,
+                    "not admin or not check password hash",
+                    url,
+                    "POST",
+                ),
                 "code_status": 403,
             }
 
         # Verifica que el autenticador sea admin
         if admin.role != "admin":
             return {
-                "response": get_error_json(ADMIN_AUTH_FAILED, f"role {admin.role} is not admin", url, "POST"),
+                "response": get_error_json(
+                    ADMIN_AUTH_FAILED, f"role {admin.role} is not admin", url, "POST"
+                ),
                 "code_status": 403,
             }
 
@@ -339,17 +389,21 @@ class UserController:
 
         valid, msg = self._check_create_user_params(new_user_data)
         if not valid:
-            return {"response": get_error_json("Error in params", msg, url, "POST"), 
-                    "code_status": 400}
+            return {
+                "response": get_error_json("Error in params", msg, url, "POST"),
+                "code_status": 400,
+            }
 
         try:
             self.user_service.create(new_user_data)
-            return {"response": jsonify({"message": ADMIN_CREATED}), 
-                    "code_status": 201}
+            return {"response": jsonify({"message": ADMIN_CREATED}), "code_status": 201}
         except Exception as e:
-            return {"response": get_error_json("Error in: user service - create", str(e), url, "POST"), 
-                    "code_status": 500}
-
+            return {
+                "response": get_error_json(
+                    "Error in: user service - create", str(e), url, "POST"
+                ),
+                "code_status": 500,
+            }
 
     def login_admin(self, request):
         """
@@ -367,6 +421,7 @@ class UserController:
             # Session created, we assign whatever for this session, we dont care
             session["user"] = user_data
             session.permanent = True  # this sets the session permanent
+            current_app.logger.debug(f"DEBUG: session is {session}")
             return {
                 "response": jsonify(
                     {"message": ADMIN_LOGIN_SUCCESS, "data": user_data}
@@ -375,10 +430,14 @@ class UserController:
             }
         else:
             return {
-                "response": get_error_json(ADMIN_LOGIN_FAILED, f"role {user_data[6]} is not 'admin'", "/users/admin/login", "POST"), 
+                "response": get_error_json(
+                    ADMIN_LOGIN_FAILED,
+                    f"role {user_data[6]} is not 'admin'",
+                    "/users/admin/login",
+                    "POST",
+                ),
                 "code_status": 403,
             }
-
 
     def is_session_valid(self):
         """
@@ -393,13 +452,14 @@ class UserController:
         else:
             current_app.logger.info("Check if the session has expired.")
 
-        if "user" not in session:
+        if "user" not in session or not session.permanent:
+            current_app.logger.info(f"Session: {session}")
+            current_app.logger.info("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
             }
         return None
-
 
     def login_user_with_google(self, request):
         """
@@ -426,7 +486,9 @@ class UserController:
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
-            "response": get_error_json(NOT_USER, "User not authorized by Google", "/users/authorize"),
+            "response": get_error_json(
+                NOT_USER, "User not authorized by Google", "/users/authorize"
+            ),
             "code_status": 404,
         }
 
@@ -438,7 +500,9 @@ class UserController:
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
             return {
-                "response": get_error_json(NOT_USER, "Token inválido", "/users/authorize"),
+                "response": get_error_json(
+                    NOT_USER, "Token inválido", "/users/authorize"
+                ),
                 "code_status": 401,
             }
 
@@ -448,7 +512,6 @@ class UserController:
         user = self._serialize_user(user)
 
         return {"response": jsonify({"data": user}), "code_status": 200}
-
 
     def authorize_signup_token(self, request):
         """
@@ -467,7 +530,9 @@ class UserController:
         current_app.logger.debug(f"Data: {data}")
         if self._validate_request(data, params) == False:
             return {
-                "response": get_error_json(BAD_REQUEST, "Request should have {params}", "/users/signup/google"),
+                "response": get_error_json(
+                    BAD_REQUEST, "Request should have {params}", "/users/signup/google"
+                ),
                 "code_status": 401,
             }
 
@@ -475,7 +540,9 @@ class UserController:
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
             return {
-                "response": get_error_json(NOT_USER, "Token inválido", "/users/signup/google"),
+                "response": get_error_json(
+                    NOT_USER, "Token inválido", "/users/signup/google"
+                ),
                 "code_status": 401,
             }
 
@@ -485,7 +552,6 @@ class UserController:
         user = self._serialize_user(user)
 
         return {"response": jsonify({"data": user}), "code_status": 200}
-
 
     def authorize_login_token(self, request):
         """
@@ -505,7 +571,9 @@ class UserController:
 
         if self._validate_request(data, params) == False:
             return {
-                "response": get_error_json(BAD_REQUEST, "Request should have {params}", "/users/login/google"),
+                "response": get_error_json(
+                    BAD_REQUEST, "Request should have {params}", "/users/login/google"
+                ),
                 "code_status": 401,
             }
 
@@ -535,3 +603,111 @@ class UserController:
             if param not in request:
                 return False
         True
+
+    def initiate_password_recovery(self, email):
+        """Controlador para el inicio de recuperación de contraseña"""
+        try:
+            result = self.user_service.initiate_password_recovery(email)
+            if "pin" in result:  # Si hay PIN en la respuesta
+                return {
+                    "response": jsonify(
+                        {
+                            "message": result["message"],
+                            "pin": result["pin"],  # ← Asegurar que el PIN se incluye
+                        }
+                    ),
+                    "code_status": result["code"],
+                }
+            return {
+                "response": jsonify({"message": result["error"]}),
+                "code_status": result["code"],
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error en recuperación de contraseña: {str(e)}")
+            return {
+                "response": jsonify(
+                    {"error": "Ocurrió un error al procesar la solicitud"}
+                ),
+                "code_status": 500,
+            }
+
+    def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
+        """Controlador para validación de PIN"""
+        try:
+            result = self.user_service.validate_recovery_pin(email, pin_code)
+            return {
+                "response": jsonify(
+                    {"message": result["message"]}
+                    if "message" in result
+                    else {"error": result["error"]}
+                ),
+                "code_status": result["code"],
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN"}),
+                "code_status": 500,
+            }
+
+    def update_password(self, email, new_password):
+        """Controlador para actualización de contraseña"""
+        try:
+            result = self.user_service.update_password(email, new_password)
+            return {
+                "response": jsonify(
+                    {"message": result["message"]}
+                    if "message" in result
+                    else {"error": result["error"]}
+                ),
+                "code_status": result["code"],
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error actualizando contraseña: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error actualizando contraseña"}),
+                "code_status": 500,
+            }
+
+    def initiate_registration_confirmation(self, email: str) -> dict:
+        """Controlador para inicio de confirmación de registro"""
+        try:
+            result = self.user_service.initiate_registration_confirmation(email)
+            if "pin" in result:
+                return {
+                    "response": jsonify(
+                        {"message": result["message"], "pin": result["pin"]}
+                    ),
+                    "code_status": result["code"],
+                }
+            return {
+                "response": jsonify({"error": result["error"]}),
+                "code_status": result["code"],
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error en confirmación de registro: {str(e)}")
+            return {
+                "response": jsonify(
+                    {"error": "Ocurrió un error al procesar la solicitud"}
+                ),
+                "code_status": 500,
+            }
+
+    def validate_registration_pin(self, email, pin_code):
+        """Controlador para validación de PIN de registro"""
+        try:
+            result = self.user_service.validate_registration_pin(email, pin_code)
+            return {
+                "response": jsonify(
+                    {"message": result["message"]}
+                    if "message" in result
+                    else {"error": result["error"]}
+                ),
+                "code_status": result["code"],
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error validando PIN de registro: {str(e)}")
+            return {
+                "response": jsonify({"error": "Error validando PIN de registro"}),
+                "code_status": 500,
+            }

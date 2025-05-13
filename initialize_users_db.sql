@@ -36,7 +36,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO user_db;
 -- Enable the uuid-ossp extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create the 'courses' table
+-- Create the 'users' table
 CREATE TABLE IF NOT EXISTS users (
     uuid UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name text,
@@ -54,6 +54,20 @@ CREATE TABLE IF NOT EXISTS user_locations (
     longitude DOUBLE PRECISION NOT NULL,
     FOREIGN KEY (uuid) REFERENCES users(uuid) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS pins (
+    pin_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    pin_code TEXT NOT NULL,
+    pin_type TEXT NOT NULL CHECK (pin_type IN ('password_recovery', 'registration')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    used BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE
+);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_pins_user_id ON pins(user_id);
+CREATE INDEX IF NOT EXISTS idx_pins_pin_code ON pins(pin_code);
 
 INSERT INTO users (name, surname, password, email, status, role)
 VALUES ('Admin', 'Admin', '123456789', 'admin@admin.com', 'enabled', 'admin');
