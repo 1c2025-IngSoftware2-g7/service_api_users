@@ -451,7 +451,8 @@ class UserController:
         else:
             current_app.logger.info("Check if the session has expired.")
 
-        if "user" not in session:
+        if "user" not in session or not session.permanent:
+            current_app.logger.info("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
