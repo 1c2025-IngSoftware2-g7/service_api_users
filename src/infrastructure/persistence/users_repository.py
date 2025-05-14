@@ -59,6 +59,22 @@ class UsersRepository(BaseEntity):
         for user in users:
             result.append(self._parse_user(user[0]))
         return result
+    
+    def get_active_teachers(self):
+        query = """
+        SELECT ROW_TO_JSON(u) 
+        FROM users u
+        WHERE u.role = 'teacher'
+        AND u.status = 'active';
+        """
+        self.cursor.execute(query)
+        users = self.cursor.fetchall()
+        logger.debug(f"teachers are {users}")
+
+        result = []
+        for user in users:
+            result.append(self._parse_user(user[0]))
+        return result
 
     def get_user(self, user_id):
         query = """

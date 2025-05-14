@@ -72,6 +72,20 @@ class UserController:
 
         return {"response": jsonify({"data": users}), "code_status": 200}
 
+    def get_active_teachers(self):
+        """
+        Get users with role=teacher and status=active.
+        """
+        is_session_expired = self.is_session_valid()
+
+        if is_session_expired:
+            return is_session_expired
+
+        teachers = self.user_service.get_active_teachers()
+        teachers = [self._serialize_user(teacher) for teacher in teachers]
+
+        return {"response": jsonify({"data": teachers}), "code_status": 200}
+
     def get_specific_users(self, uuid):
         """
         Get specific user.

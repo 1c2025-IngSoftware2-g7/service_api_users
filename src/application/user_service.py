@@ -30,6 +30,11 @@ class UserService:
         """Get all users."""
         users = self.user_repository.get_all_users()
         return users
+    
+    def get_active_teachers(self):
+        """Get active teachers."""
+        users = self.user_repository.get_active_teachers()
+        return users
 
     def get_specific_users(self, uuid):
         """Get specific user."""
