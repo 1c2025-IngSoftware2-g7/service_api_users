@@ -124,7 +124,7 @@ class UserService:
         self.user_repository.create_pin(user.uuid, pin_code, "password_recovery")
 
         # En producción aquí iría el envío del email
-        current_app.logger.info(f"PIN generado para {email}: {pin_code}")
+        current_app.logger.info(f"Users API - PIN generado para {email}: {pin_code}")
 
         return {
             "message": "Proceso de recuperación iniciado",
