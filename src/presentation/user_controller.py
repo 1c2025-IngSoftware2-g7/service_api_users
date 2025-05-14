@@ -66,7 +66,6 @@ class UserController:
 
         users = self.user_service.get_users()  # list of instance of Users() (domain)
         users = [self._serialize_user(user) for user in users]
-        current_app.logger.debug(f"DEBUG: in controller: users is {users}")
 
         return {"response": jsonify({"data": users}), "code_status": 200}
 
@@ -86,7 +85,6 @@ class UserController:
 
         if user:
             user = self._serialize_user(user)
-            current_app.logger.debug(f"DEBUG: user is {user}")
             return {"response": jsonify({"data": user}), "code_status": 200}
 
         return {
@@ -122,12 +120,10 @@ class UserController:
         Create a users.
         In Flask: uuid.UUID is serialized to a string.
         """
-        current_app.logger.debug(f"DEBUG: request in create_users -> {request}")
         url = "/users"
 
         if request.is_json:
             user = request.get_json()
-            current_app.logger.debug(f"DEBUG: json in create_users -> {user}")
 
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
@@ -189,11 +185,11 @@ class UserController:
             }
 
         if self.get_specific_users(user_id)["code_status"] == 200:
-            current_app.logger.debug("User exists")
+            current_app.logger.debug("Users API - User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {"response": jsonify({"result": PUT_LOCATION}), "code_status": 200}
 
-        current_app.logger.debug("User not exists")
+        current_app.logger.debug("Users API - User not exists")
         return {
             "response": get_error_json(
                 NOT_USER,
@@ -252,9 +248,6 @@ class UserController:
             email = data["email"]  # This contains mail
             password = data["password"]  # This contains password
 
-            current_app.logger.debug(f"DEBUG: email is {email}")
-            current_app.logger.debug(f"DEBUG: password is {password}")
-
             # Check if the email and password are in the request
             # If this exists, this bring us the id of the user
             user_exists = self.user_service.mail_exists(email)
@@ -275,10 +268,6 @@ class UserController:
                 user_serialized_from_db
             )  # Serialize the instance
 
-            current_app.logger.debug(
-                f"DEBUG: user_serialized_from_db is {user_serialized_from_db}"
-            )
-
             # First admin:
             if (
                 user_serialized_from_db["role"] == "admin"
@@ -297,8 +286,6 @@ class UserController:
                 session["user"] = email
                 # session.permanent = True # This sets the session for 5 minutes (app.py - line 14)
 
-                current_app.logger.debug(f"DEBUG: User {email} logged in")
-                current_app.logger.debug(f"DEBUG: session is {session}")
                 return {
                     # Mail exists contain the user data.
                     "response": jsonify({"data": user_serialized_from_db}),
@@ -357,7 +344,7 @@ class UserController:
 
         # Autentica al admin existente
         admin = self.user_service.mail_exists(data["admin_email"])
-        if not admin or not check_password_hash(admin.email, data["admin_password"]):
+        if not admin or (admin.password != data["admin_password"]):
             return {
                 "response": get_error_json(
                     ADMIN_AUTH_FAILED,
@@ -446,12 +433,13 @@ class UserController:
         """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
-            current_app.logger.info("In TEST, without session expiration.")
+            current_app.logger.info("Users API - In TEST, without session expiration.")
             return None
         else:
-            current_app.logger.info("Check if the session has expired.")
+            current_app.logger.info("Users API - Check if the session has expired.")
 
-        if "user" not in session:
+        if "user" not in session or not session.permanent:
+            current_app.logger.info("Users API - Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
@@ -462,21 +450,17 @@ class UserController:
         """
         Login a user with google
         """
-        current_app.logger.info(f"In controller with request: {request}")
         role = request.args.get("role", "student")
-        current_app.logger.info(f"In controller - role: {role}")
         return self.user_service.login_user_with_google(role)
 
     def authorize(self, request):
         user_info = self.user_service.authorize()
-        current_app.logger.info(f"In controller - user_info: {user_info}")
 
         if user_info:
             user_info["role"] = request.args.get("state", "student")
             user_info["status"] = "active"
             user = self.user_service.create_users_if_not_exist(user_info)
             user = self._serialize_user(user)
-            current_app.logger.debug(f"In controller - user: {user}")
 
             user_email = user["email"]
             session["user"] = user_email
@@ -491,7 +475,6 @@ class UserController:
 
     def authorize_with_token(self, request):
         data = request.get_json()
-        current_app.logger.debug(f"Data: {data}")
         token = data.get("token")
 
         user_info = self.user_service.verify_google_token(token)
@@ -524,7 +507,6 @@ class UserController:
             "role",
         ]
         data = request.get_json()
-        current_app.logger.debug(f"Data: {data}")
         if self._validate_request(data, params) == False:
             return {
                 "response": get_error_json(
@@ -564,7 +546,7 @@ class UserController:
             "photo",
         ]
         data = request.get_json()
-        current_app.logger.debug(f"Data: {data}")
+        current_app.logger.debug(f"Users API - Data: {data}")
 
         if self._validate_request(data, params) == False:
             return {
@@ -620,7 +602,7 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Error en recuperación de contraseña: {str(e)}")
+            current_app.logger.error(f"Users API - Error en recuperación de contraseña: {str(e)}")
             return {
                 "response": jsonify(
                     {"error": "Ocurrió un error al procesar la solicitud"}
@@ -641,7 +623,7 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Error validando PIN: {str(e)}")
+            current_app.logger.error(f"Users API - Error validando PIN: {str(e)}")
             return {
                 "response": jsonify({"error": "Error validando PIN"}),
                 "code_status": 500,
@@ -660,7 +642,7 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Error actualizando contraseña: {str(e)}")
+            current_app.logger.error(f"Users API - Error actualizando contraseña: {str(e)}")
             return {
                 "response": jsonify({"error": "Error actualizando contraseña"}),
                 "code_status": 500,
@@ -682,7 +664,7 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Error en confirmación de registro: {str(e)}")
+            current_app.logger.error(f"Users API - Error en confirmación de registro: {str(e)}")
             return {
                 "response": jsonify(
                     {"error": "Ocurrió un error al procesar la solicitud"}
@@ -703,7 +685,7 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Error validando PIN de registro: {str(e)}")
+            current_app.logger.error(f"Users API - Error validando PIN de registro: {str(e)}")
             return {
                 "response": jsonify({"error": "Error validando PIN de registro"}),
                 "code_status": 500,

@@ -70,4 +70,4 @@ CREATE INDEX IF NOT EXISTS idx_pins_user_id ON pins(user_id);
 CREATE INDEX IF NOT EXISTS idx_pins_pin_code ON pins(pin_code);
 
 INSERT INTO users (name, surname, password, email, status, role)
-VALUES ('Admin', 'Admin', '123456789', 'admin@admin.com', 'enabled', 'admin');
+VALUES ('Admin', 'Admin', '123456789', 'admin@admin.com', 'active', 'admin');
