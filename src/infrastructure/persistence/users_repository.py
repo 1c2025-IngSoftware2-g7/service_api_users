@@ -1,9 +1,11 @@
 from werkzeug.security import generate_password_hash
-from flask import current_app
 
 from domain.location import Location
 from infrastructure.persistence.base_entity import BaseEntity
 from domain.user import User
+from logger_config import get_logger
+
+logger = get_logger("api-users")
 
 class UsersRepository(BaseEntity):
     def __init__(self):
@@ -50,7 +52,7 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query)
         users = self.cursor.fetchall()
-        current_app.logger.debug(f"users is {users}")
+        logger.debug(f"users is {users}")
 
         # Returns an instance of the domain:
         result = []

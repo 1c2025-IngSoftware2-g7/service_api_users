@@ -1,7 +1,10 @@
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from flask import current_app
+
+from logger_config import get_logger
+
+logger = get_logger("api-users")
 
 USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
@@ -18,9 +21,9 @@ class GoogleService:
         )
 
     def authorize_redirect(self, role):
-        current_app.logger.info(f"In google service - role: {role}")
+        logger.info(f"In google service - role: {role}")
         redirect_uri = os.getenv("OAUTH_REDIRECT_URI")
-        current_app.logger.info(f"In google service - redirect_uri: {redirect_uri}")
+        logger.info(f"In google service - redirect_uri: {redirect_uri}")
         return self.google.authorize_redirect(redirect_uri, state=role)
 
     def authorize_access_token(self):
@@ -28,7 +31,7 @@ class GoogleService:
 
     def get_user_info(self):
         response = self.google.get(USERINFO_URL)
-        current_app.logger.info(f"In google service - get_user_info - response: {response}")
+        logger.info(f"In google service - get_user_info - response: {response}")
         return response.json()
 
     def verify_google_token(self, id_token_str):
@@ -57,5 +60,5 @@ class GoogleService:
                 raise ValueError("Unverified email")
 
         except ValueError as e:
-            current_app.logger.error(f"Invalid token: {e}")
+            logger.error(f"Invalid token: {e}")
             return None

@@ -1,5 +1,5 @@
 import os
-from flask import jsonify, session, current_app
+from flask import jsonify, session
 from werkzeug.security import check_password_hash
 
 from headers import (
@@ -16,6 +16,9 @@ from headers import (
 )
 from application.user_service import UserService
 from presentation.error_generator import get_error_json
+from logger_config import get_logger
+
+logger = get_logger("api-users")
 
 
 class UserController:
@@ -185,11 +188,11 @@ class UserController:
             }
 
         if self.get_specific_users(user_id)["code_status"] == 200:
-            current_app.logger.debug("User exists")
+            logger.debug("User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {"response": jsonify({"result": PUT_LOCATION}), "code_status": 200}
 
-        current_app.logger.debug("User not exists")
+        logger.debug("User not exists")
         return {
             "response": get_error_json(
                 NOT_USER,
@@ -433,13 +436,13 @@ class UserController:
         """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
-            current_app.logger.info("In TEST, without session expiration.")
+            logger.info("In TEST, without session expiration.")
             return None
         else:
-            current_app.logger.info("Check if the session has expired.")
+            logger.info("Check if the session has expired.")
 
         if "user" not in session or not session.permanent:
-            current_app.logger.info("Session not valid.")
+            logger.info("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
@@ -546,7 +549,7 @@ class UserController:
             "photo",
         ]
         data = request.get_json()
-        current_app.logger.debug(f"Data: {data}")
+        logger.debug(f"Data: {data}")
 
         if self._validate_request(data, params) == False:
             return {
