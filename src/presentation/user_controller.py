@@ -76,11 +76,6 @@ class UserController:
         """
         Get users with role=teacher and status=active.
         """
-        is_session_expired = self.is_session_valid()
-
-        if is_session_expired:
-            return is_session_expired
-
         teachers = self.user_service.get_active_teachers()
         teachers = [self._serialize_user(teacher) for teacher in teachers]
 
