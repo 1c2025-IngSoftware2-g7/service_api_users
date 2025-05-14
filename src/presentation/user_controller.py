@@ -185,11 +185,11 @@ class UserController:
             }
 
         if self.get_specific_users(user_id)["code_status"] == 200:
-            current_app.logger.debug("Users API - User exists")
+            current_app.logger.debug("User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {"response": jsonify({"result": PUT_LOCATION}), "code_status": 200}
 
-        current_app.logger.debug("Users API - User not exists")
+        current_app.logger.debug("User not exists")
         return {
             "response": get_error_json(
                 NOT_USER,
@@ -433,13 +433,13 @@ class UserController:
         """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
-            current_app.logger.info("Users API - In TEST, without session expiration.")
+            current_app.logger.info("In TEST, without session expiration.")
             return None
         else:
-            current_app.logger.info("Users API - Check if the session has expired.")
+            current_app.logger.info("Check if the session has expired.")
 
         if "user" not in session or not session.permanent:
-            current_app.logger.info("Users API - Session not valid.")
+            current_app.logger.info("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,
@@ -546,7 +546,7 @@ class UserController:
             "photo",
         ]
         data = request.get_json()
-        current_app.logger.debug(f"Users API - Data: {data}")
+        current_app.logger.debug(f"Data: {data}")
 
         if self._validate_request(data, params) == False:
             return {
@@ -584,7 +584,7 @@ class UserController:
         True
 
     def initiate_password_recovery(self, email):
-        """Controlador para el inicio de recuperación de contraseña"""
+        """Controller for password recovery startup"""
         try:
             result = self.user_service.initiate_password_recovery(email)
             if "pin" in result:  # Si hay PIN en la respuesta
@@ -602,16 +602,18 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Users API - Error en recuperación de contraseña: {str(e)}")
             return {
-                "response": jsonify(
-                    {"error": "Ocurrió un error al procesar la solicitud"}
+                "response": get_error_json(
+                    "Password recovery error", 
+                    f"An error occurred while processing the request: {str(e)}", 
+                    "/users/<string:user_email>/password-recovery", 
+                    "POST"
                 ),
                 "code_status": 500,
             }
 
     def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
-        """Controlador para validación de PIN"""
+        """PIN validation controller"""
         try:
             result = self.user_service.validate_recovery_pin(email, pin_code)
             return {
@@ -623,14 +625,18 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Users API - Error validando PIN: {str(e)}")
             return {
-                "response": jsonify({"error": "Error validando PIN"}),
+                "response": get_error_json(
+                    "Error validating PIN", 
+                    str(e), 
+                    "/users/<string:user_email>/password-recovery", 
+                    "PUT"
+                ),
                 "code_status": 500,
             }
 
     def update_password(self, email, new_password):
-        """Controlador para actualización de contraseña"""
+        """Controller for password update"""
         try:
             result = self.user_service.update_password(email, new_password)
             return {
@@ -642,14 +648,18 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Users API - Error actualizando contraseña: {str(e)}")
             return {
-                "response": jsonify({"error": "Error actualizando contraseña"}),
+                "response": get_error_json(
+                    "Error updating password", 
+                    str(e), 
+                    "/users/<string:user_email>/password", 
+                    "PUT"
+                ),
                 "code_status": 500,
             }
 
     def initiate_registration_confirmation(self, email: str) -> dict:
-        """Controlador para inicio de confirmación de registro"""
+        """Controller for registration confirmation start"""
         try:
             result = self.user_service.initiate_registration_confirmation(email)
             if "pin" in result:
@@ -664,16 +674,18 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Users API - Error en confirmación de registro: {str(e)}")
             return {
-                "response": jsonify(
-                    {"error": "Ocurrió un error al procesar la solicitud"}
+                "response": get_error_json(
+                    "Error in registration confirmation", 
+                    str(e), 
+                    "/users/<string:user_email>/confirm-registration", 
+                    "POST"
                 ),
                 "code_status": 500,
             }
 
     def validate_registration_pin(self, email, pin_code):
-        """Controlador para validación de PIN de registro"""
+        """Controller for registration PIN validation"""
         try:
             result = self.user_service.validate_registration_pin(email, pin_code)
             return {
@@ -685,8 +697,12 @@ class UserController:
                 "code_status": result["code"],
             }
         except Exception as e:
-            current_app.logger.error(f"Users API - Error validando PIN de registro: {str(e)}")
             return {
-                "response": jsonify({"error": "Error validando PIN de registro"}),
+                "response": get_error_json(
+                    "Error validating registration PIN", 
+                    str(e), 
+                    "/users/<string:user_email>/confirm-registration", 
+                    "PUT"
+                ),
                 "code_status": 500,
             }

@@ -18,9 +18,9 @@ class GoogleService:
         )
 
     def authorize_redirect(self, role):
-        current_app.logger.info(f"Users API - In google service - role: {role}")
+        current_app.logger.info(f"In google service - role: {role}")
         redirect_uri = os.getenv("OAUTH_REDIRECT_URI")
-        current_app.logger.info(f"Users API - In google service - redirect_uri: {redirect_uri}")
+        current_app.logger.info(f"In google service - redirect_uri: {redirect_uri}")
         return self.google.authorize_redirect(redirect_uri, state=role)
 
     def authorize_access_token(self):
@@ -28,7 +28,7 @@ class GoogleService:
 
     def get_user_info(self):
         response = self.google.get(USERINFO_URL)
-        current_app.logger.info(f"Users API - In google service - get_user_info - response: {response}")
+        current_app.logger.info(f"In google service - get_user_info - response: {response}")
         return response.json()
 
     def verify_google_token(self, id_token_str):
@@ -57,5 +57,5 @@ class GoogleService:
                 raise ValueError("Unverified email")
 
         except ValueError as e:
-            current_app.logger.error(f"Users API - Invalid token: {e}")
+            current_app.logger.error(f"Invalid token: {e}")
             return None
