@@ -1,9 +1,10 @@
-from flask import current_app
 import random
 import string
 
 from infrastructure.persistence.users_repository import UsersRepository
+from logger_config import get_logger
 
+logger = get_logger("api-users")
 
 """ 
 The application layer contains all the logic that is required by the application to meet its functional requirements and, 
@@ -58,21 +59,21 @@ class UserService:
 
     def login_user_with_google(self, role):
         """Login a user with google."""
-        current_app.logger.info(f"In service - login_user_with_google - role: {role}")
+        logger.info(f"In service - login_user_with_google - role: {role}")
         return self.google.authorize_redirect(role)
 
     def authorize(self):
         token = self.google.authorize_access_token()
-        current_app.logger.info(f"In service - authorize - token: {token}")
+        logger.info(f"In service - authorize - token: {token}")
         return self.google.get_user_info()
 
     def create_users_if_not_exist(self, user_info):
         user = self.user_repository.get_user_with_email(user_info["email"])
-        current_app.logger.info(f"In service - create_users_if_not_exist - user: {user}")
+        logger.info(f"In service - create_users_if_not_exist - user: {user}")
         if user != None:
             return user
 
-        current_app.logger.info(
+        logger.info(
             f"User does not exist. Create user with the following parameters: {user_info}"
         )
 
@@ -82,16 +83,16 @@ class UserService:
 
     def verify_user_existence(self, user_info):
         user = self.user_repository.get_user_with_email(user_info["email"])
-        current_app.logger.info(f"In service - create_users_if_not_exist - user: {user}")
+        logger.info(f"In service - create_users_if_not_exist - user: {user}")
         return user
 
     def create_users(self, user_info):
         user = self.user_repository.get_user_with_email(user_info["email"])
-        current_app.logger.info(f"In service - create_users - user: {user}")
+        logger.info(f"In service - create_users - user: {user}")
         if user != None:
             return user
 
-        current_app.logger.info(
+        logger.info(
             f"User does not exist. Create user with the following parameters: {user_info}"
         )
 
@@ -124,7 +125,7 @@ class UserService:
         self.user_repository.create_pin(user.uuid, pin_code, "password_recovery")
 
         # En producción aquí iría el envío del email
-        current_app.logger.info(f"PIN generado para {email}: {pin_code}")
+        logger.info(f"PIN generado para {email}: {pin_code}")
 
         return {
             "message": "Proceso de recuperación iniciado",

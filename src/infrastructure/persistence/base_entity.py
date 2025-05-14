@@ -1,9 +1,10 @@
 import psycopg
 import time
-from flask import current_app
 
 from infrastructure.config.db_config import DatabaseConfig
+from logger_config import get_logger
 
+logger = get_logger("api-users")
 
 class BaseEntity:
 
@@ -19,7 +20,7 @@ class BaseEntity:
                 return psycopg.connect(connection_string)
             except psycopg.OperationalError:
                 time.sleep(delay)
-        current_app.logger.error("Database connection error.")
+        logger.error("Database connection error.")
         raise RuntimeError("Database connection error.")
 
     def commit(self):

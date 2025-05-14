@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from app_factory import AppFactory
-
+from logger_config import get_logger
 
 users_app = Flask(__name__)
 CORS(
@@ -29,9 +29,7 @@ users_app.permanent_session_lifetime = timedelta(minutes=5)
 oauth = OAuth(users_app)
 
 # Logger config
-env = os.getenv("FLASK_ENV")
-log_level = logging.DEBUG if env == "development" else logging.INFO
-users_app.logger.setLevel(log_level)
+logger = get_logger("api-users")
 
 # Create layers
 user_controller = AppFactory.create(oauth)
@@ -135,13 +133,13 @@ def login_user_with_google():
     Default: student.
     Ex: '?role=student' or '?role=teacher'.
     """
-    users_app.logger.info(f"In /users/login/google with request: {request}")
+    logger.info(f"In /users/login/google with request: {request}")
     return user_controller.login_user_with_google(request)
 
 
 @users_app.get("/users/authorize")
 def authorize():
-    users_app.logger.debug(f"In GET /users/authorize with request: {request}")
+    logger.debug(f"In GET /users/authorize with request: {request}")
     result = user_controller.authorize(request)
     return result["response"], result["code_status"]
 
@@ -155,7 +153,7 @@ def authorize_with_token():
     Default: student.
     Ex: '?role=student' or '?role=teacher'.
     """
-    users_app.logger.debug(f"In POST /users/authorize with request: {request}")
+    logger.debug(f"In POST /users/authorize with request: {request}")
     result = user_controller.authorize_with_token(request)
     return result["response"], result["code_status"]
 
@@ -168,7 +166,7 @@ def post_signup_google():
 
     Create profile: POST /profiles --> TODO: Move to API gateway.
     """
-    users_app.logger.debug(f"In POST /users/signup/google with request: {request}")
+    logger.debug(f"In POST /users/signup/google with request: {request}")
     result = user_controller.authorize_signup_token(request)
 
     return result["response"], result["code_status"]
@@ -183,7 +181,7 @@ def post_login_google():
 
     UPDATE /profiles with photo --> TODO: Move to API gateway.
     """
-    users_app.logger.debug(f"In POST /users/login/google with request: {request}")
+    logger.debug(f"In POST /users/login/google with request: {request}")
     result = user_controller.authorize_login_token(request)
     return result["response"], result["code_status"]
 
