@@ -19,7 +19,7 @@ class BaseEntity:
                 return psycopg.connect(connection_string)
             except psycopg.OperationalError:
                 time.sleep(delay)
-        current_app.logger.error("Users API - Database connection error.")
+        current_app.logger.error("Database connection error.")
         raise RuntimeError("Database connection error.")
 
     def commit(self):
