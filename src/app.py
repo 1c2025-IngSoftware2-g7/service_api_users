@@ -69,6 +69,15 @@ def get_specific_users(uuid):
     return result["response"], result["code_status"]
 
 
+@users_app.get("/users/teachers")
+def get_active_teachers():
+    """
+    Get users with role=teacher and status=active.
+    """
+    result = user_controller.get_active_teachers()
+    return result["response"], result["code_status"]
+
+
 @users_app.delete("/users/<uuid:uuid>")
 def delete_specific_users(uuid):
     """
