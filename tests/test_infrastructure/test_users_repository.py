@@ -51,7 +51,7 @@ def test_get_all_users(users_repository, mock_cursor, uuid_1, uuid_2, password_h
             "surname": "Perez",
             "password": "password",
             "email": "juan.perez@gmail.com",
-            "status": "enabled",
+            "status": "active",
             "role": "admin",
             "location": {"latitude": 45.04, "longitude": -75.00},
         },),
@@ -61,7 +61,7 @@ def test_get_all_users(users_repository, mock_cursor, uuid_1, uuid_2, password_h
             "surname": "Lopez",
             "password": "password",
             "email": "juana.lopez@gmail.com",
-            "status": "enabled",
+            "status": "active",
             "role": "user",
             "location": {"latitude": 34.0522, "longitude": -118.2437},
         },),
@@ -83,7 +83,7 @@ def test_get_user(users_repository, mock_cursor, uuid_1, password_hash):
         "surname": "Perez",
         "password": "password",
         "email": "juan.perez@gmail.com",
-        "status": "enabled",
+        "status": "active",
         "role": "admin",
         "location": {"latitude": 45.04, "longitude": -75.00},
     },)
@@ -102,7 +102,7 @@ def test_get_user_with_email(users_repository, mock_cursor, uuid_1):
         "surname": "Perez",
         "password": "password",
         "email": "juan.perez@gmail.com",
-        "status": "enabled",
+        "status": "active",
         "role": "admin",
         "location": {"latitude": 45.04, "longitude": -75.00},
     },)
@@ -119,7 +119,7 @@ def test_insert_user(users_repository, mock_cursor, password_hash):
         'surname': 'Perez',
         'password': "hashed-password",
         'email': 'juan.perez@gmail.com',
-        'status': 'enabled',
+        'status': 'active',
         'role': 'admin'
     }
 
@@ -127,7 +127,7 @@ def test_insert_user(users_repository, mock_cursor, password_hash):
 
     mock_cursor.execute.assert_called_once_with(
         'INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)',
-        params=('Juan', 'Perez', "hashed-password", 'juan.perez@gmail.com', 'enabled', 'admin')
+        params=('Juan', 'Perez', "hashed-password", 'juan.perez@gmail.com', 'active', 'admin')
     )
 
 
@@ -160,7 +160,7 @@ def test_check_email(users_repository, mock_cursor, uuid_1):
         "surname": "Perez",
         "password": "password",
         "email": "juan.perez@gmail.com",
-        "status": "enabled",
+        "status": "active",
         "role": "admin",
         "location": {"latitude": 45.04, "longitude": -75.00},
     },)

@@ -473,7 +473,7 @@ class UserController:
 
         if user_info:
             user_info["role"] = request.args.get("state", "student")
-            user_info["status"] = "enabled"
+            user_info["status"] = "active"
             user = self.user_service.create_users_if_not_exist(user_info)
             user = self._serialize_user(user)
             current_app.logger.debug(f"In controller - user: {user}")
@@ -504,7 +504,7 @@ class UserController:
             }
 
         data["role"] = data.get("role", "student")
-        data["status"] = data.get("status", "enabled")
+        data["status"] = data.get("status", "active")
         user = self.user_service.create_users_if_not_exist(data)
         user = self._serialize_user(user)
 
@@ -544,7 +544,7 @@ class UserController:
             }
 
         data["role"] = data.get("role", "student")
-        data["status"] = data.get("status", "enabled")
+        data["status"] = data.get("status", "active")
         user = self.user_service.create_users(data)
         user = self._serialize_user(user)
 
@@ -579,7 +579,7 @@ class UserController:
         if user_info:
             user = self.user_service.verify_user_existence(data)
             if user != None:
-                if user.status == "enabled":
+                if user.status == "active":
                     user = self._serialize_user(user)
 
                     return {"response": jsonify({"data": user}), "code_status": 200}

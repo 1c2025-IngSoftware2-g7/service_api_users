@@ -19,7 +19,7 @@ def mock_user():
             self.surname = "User"
             self.password = generate_password_hash("password")
             self.email = "user.test@gmail.com"
-            self.status = "enabled"
+            self.status = "active"
             self.role = "student"
             self.location = None
     return MockUser()
@@ -67,7 +67,7 @@ def test_create_user_success(app, controller, mock_user):
         "surname": "User",
         "password": "password",
         "email": "user.test@gmail.com",
-        "status": "enabled",
+        "status": "active",
         "role": "student"
     }
 
@@ -87,7 +87,7 @@ def test_create_user_conflict_email(app, controller):
         "surname": "User",
         "password": "password",
         "email": "user.test@gmail.com",
-        "status": "enabled",
+        "status": "active",
         "role": "student"
     }
 
