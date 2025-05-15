@@ -599,19 +599,9 @@ class UserController:
         """Controller for password recovery startup"""
         try:
             result = self.user_service.initiate_password_recovery(email)
-            if "pin" in result:  # Si hay PIN en la respuesta
-                return {
-                    "response": jsonify(
-                        {
-                            "message": result["message"],
-                            "pin": result["pin"],  # ← Asegurar que el PIN se incluye
-                        }
-                    ),
-                    "code_status": result["code"],
-                }
             return {
-                "response": jsonify({"message": result["error"]}),
-                "code_status": result["code"],
+                "response": jsonify({"message": result["message"]}),
+                "code_status": result["code"]
             }
         except Exception as e:
             return {
@@ -674,16 +664,9 @@ class UserController:
         """Controller for registration confirmation start"""
         try:
             result = self.user_service.initiate_registration_confirmation(email)
-            if "pin" in result:
-                return {
-                    "response": jsonify(
-                        {"message": result["message"], "pin": result["pin"]}
-                    ),
-                    "code_status": result["code"],
-                }
             return {
-                "response": jsonify({"error": result["error"]}),
-                "code_status": result["code"],
+                "response": jsonify({"message": result["message"]}),
+                "code_status": result["code"]
             }
         except Exception as e:
             return {

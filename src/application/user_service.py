@@ -134,7 +134,6 @@ class UserService:
 
         return {
             "message": "Proceso de recuperación iniciado",
-            "pin": pin_code,  # ← PIN incluido en la respuesta
             "code": 200
         }
 
@@ -206,7 +205,6 @@ class UserService:
         # Devolver el PIN para que el frontend lo envíe por email/SMS
         return {
             "message": "PIN de confirmación de registro generado",
-            "pin": pin_code,  # Frontend lo enviará al usuario
             "code": 200
         }
 
