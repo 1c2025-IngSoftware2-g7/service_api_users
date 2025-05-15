@@ -255,3 +255,12 @@ class UserService:
         self.user_repository.activate_user(email)
 
         return {"message": "Account verified successfully", "code": 200}
+
+    def update_status(self, uuid, new_status):
+        """
+        Changes the status to the indicated one.
+        If this is not possible, an error is generated.
+        """
+        result = self.user_repository.update_status(uuid, new_status)
+        if not result:
+            raise ValueError("Status could not be updated.")

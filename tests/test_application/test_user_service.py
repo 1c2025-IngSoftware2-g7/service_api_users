@@ -8,7 +8,8 @@ from application.user_service import UserService
 def user_service():
     mock_repo = MagicMock()
     mock_google = MagicMock()
-    service = UserService(mock_repo, mock_google)
+    mock_email = MagicMock()
+    service = UserService(mock_repo, mock_google, mock_email)
     return service, mock_repo, mock_google
 
 
