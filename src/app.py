@@ -274,3 +274,11 @@ def validate_registration_pin(user_email):
     pin_code = data["pin"]
     result = user_controller.validate_registration_pin(user_email, pin_code)
     return result["response"], result["code_status"]
+
+@users_app.put("/users/admin/status")
+def admin_change_user_status():
+    """
+    Admin change user status.
+    """
+    result = user_controller.admin_change_user_status(request)
+    return result["response"], result["code_status"]

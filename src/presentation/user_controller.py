@@ -7,6 +7,7 @@ from headers import (
     DELETE,
     NOT_USER,
     PUT_LOCATION,
+    STATUS_UPDATED,
     USER_ALREADY_EXISTS,
     WRONG_PASSWORD,
     ADMIN_AUTH_FAILED,
@@ -102,7 +103,7 @@ class UserController:
         return {
             "response": get_error_json(
                 NOT_USER,
-                f"The users with uuid {uuid} was not found",
+                f"The user with uuid {uuid} was not found",
                 f"/users/<uuid:uuid>",
             ),
             "code_status": 404,
@@ -606,7 +607,7 @@ class UserController:
         except Exception as e:
             return {
                 "response": get_error_json(
-                    "Password recovery error", 
+                    "[SERVICE] Password recovery error", 
                     f"An error occurred while processing the request: {str(e)}", 
                     "/users/<string:user_email>/password-recovery", 
                     "POST"
@@ -629,7 +630,7 @@ class UserController:
         except Exception as e:
             return {
                 "response": get_error_json(
-                    "Error validating PIN", 
+                    "[SERVICE] Error validating PIN", 
                     str(e), 
                     "/users/<string:user_email>/password-recovery", 
                     "PUT"
@@ -652,7 +653,7 @@ class UserController:
         except Exception as e:
             return {
                 "response": get_error_json(
-                    "Error updating password", 
+                    "[SERVICE] Error updating password", 
                     str(e), 
                     "/users/<string:user_email>/password", 
                     "PUT"
@@ -671,7 +672,7 @@ class UserController:
         except Exception as e:
             return {
                 "response": get_error_json(
-                    "Error in registration confirmation", 
+                    "[SERVICE] Error in registration confirmation", 
                     str(e), 
                     "/users/<string:user_email>/confirm-registration", 
                     "POST"
@@ -694,10 +695,86 @@ class UserController:
         except Exception as e:
             return {
                 "response": get_error_json(
-                    "Error validating registration PIN", 
+                    "[SERVICE] Error validating registration PIN", 
                     str(e), 
                     "/users/<string:user_email>/confirm-registration", 
                     "PUT"
+                ),
+                "code_status": 500,
+            }
+    
+
+    def admin_change_user_status(self, request):
+        """
+        Changes the status.
+        If this is not possible, an error is generated.
+        Authenticates the requester as an admin via email/password.
+        """
+        url = "/users/admin/status"
+        method = "PUT"
+        if not request.is_json:
+            return {
+                "response": get_error_json(
+                    f"[CONTROLLER] {BAD_REQUEST}", f"{request} is not json", url, method
+                ),
+                "code_status": 400,
+            }
+
+        data = request.get_json()
+
+        required_fields = [
+            "admin_email",
+            "admin_password",
+            "uuid"
+        ]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return {
+                "response": get_error_json(
+                    f"[CONTROLLER] {BAD_REQUEST}",
+                    f"Missing fields: {', '.join(missing_fields)}",
+                    url,
+                    "POST",
+                ),
+                "code_status": 400,
+            }
+
+        # Authentication if the administrator exists
+        admin = self.user_service.mail_exists(data["admin_email"])
+        if not admin or (admin.password != data["admin_password"]) or admin.role != "admin":
+            return {
+                "response": get_error_json(
+                    f"[CONTROLLER] {ADMIN_AUTH_FAILED}",
+                    "not admin or not check password",
+                    url,
+                    method,
+                ),
+                "code_status": 403,
+            }
+
+        uuid = data["uuid"]
+        user = self.user_service.get_specific_users(uuid)
+        if not user:
+            return {
+                "response": get_error_json("[CONTROLLER] uuid not exists", f"{data["uuid"]}", url, method),
+                "code_status": 400,
+            }
+        
+        if user.status == "active":
+            new_status = "inactive"
+        else:
+            new_status = "active"
+
+        try:
+            self.user_service.update_status(uuid, new_status)
+            return {
+                "response": jsonify({"message": f"{STATUS_UPDATED}: {uuid} now has status {new_status}"}), 
+                "code_status": 201
+            }
+        except Exception as e:
+            return {
+                "response": get_error_json(
+                    "[SERVICE]", str(e), url, method
                 ),
                 "code_status": 500,
             }

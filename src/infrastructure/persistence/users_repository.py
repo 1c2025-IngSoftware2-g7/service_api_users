@@ -290,3 +290,15 @@ class UsersRepository(BaseEntity):
         result = self.cursor.fetchone()
         self.conn.commit()
         return bool(result)
+
+    def update_status(self, uuid, new_status):
+        query = """
+        UPDATE users
+        SET status = %s
+        WHERE uuid = %s
+        RETURNING uuid
+        """
+        self.cursor.execute(query, (new_status, str(uuid),))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        return bool(result)
