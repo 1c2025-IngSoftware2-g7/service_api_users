@@ -126,7 +126,7 @@ class UserService:
             }
 
         # Generar PIN de 6 dígitos
-        pin_code = ''.join(random.choices(string.digits, k=6))
+        pin_code = ''.join(random.choices(string.digits, k=4))
 
         # Guardar el PIN
         self.user_repository.create_pin(user.uuid, pin_code, "password_recovery")
@@ -209,7 +209,7 @@ class UserService:
             }
 
         # Generar PIN de 6 dígitos
-        pin_code = ''.join(random.choices(string.digits, k=6))
+        pin_code = ''.join(random.choices(string.digits, k=4))
 
         # Guardar el PIN
         self.user_repository.create_pin(user.uuid, pin_code, "registration")
