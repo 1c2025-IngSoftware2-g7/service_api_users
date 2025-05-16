@@ -431,7 +431,7 @@ class UserController:
             return {
                 "response": get_error_json(
                     ADMIN_LOGIN_FAILED,
-                    f"role {user_data[6]} is not 'admin'",
+                    f"role {user_data} is not 'admin'",
                     "/users/admin/login",
                     "POST",
                 ),

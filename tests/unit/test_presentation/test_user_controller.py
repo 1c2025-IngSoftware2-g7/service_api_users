@@ -1,9 +1,12 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from werkzeug.security import generate_password_hash
-import json
+import uuid
 
 from presentation.user_controller import UserController
+from headers import PUT_LOCATION
+
+user_id = uuid.uuid4()
 
 @pytest.fixture
 def mock_user():
@@ -390,3 +393,253 @@ def test_validate_registration_pin_exception(controller, mock_error_json):
     
     assert result["code_status"] == 500
     assert "mocked error" in result["response"]["error"]
+
+
+def test_set_location_missing_data(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": None, "longitude": None}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Location is required" in response["response"].get_json()["detail"]
+
+
+def test_set_location_invalid_latitude(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "999", "longitude": "0"}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Invalid latitude" in response["response"].get_json()["detail"]
+
+
+def test_set_location_invalid_longitude(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "0", "longitude": "-999"}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Invalid longitude" in response["response"].get_json()["detail"]
+
+
+def test_set_location_user_not_found(controller):
+    # valid location
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "45.0", "longitude": "60.0"}
+
+    # User that not exist
+    controller.get_specific_users = MagicMock(return_value={"code_status": 404})
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 404
+    assert "was not found" in response["response"].get_json()["detail"]
+
+
+def test_set_location_success(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "45.0", "longitude": "60.0"}
+
+    controller.get_specific_users = MagicMock(return_value={"code_status": 200})
+    controller.user_service.set_location = MagicMock()
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 200
+    assert response["response"].get_json()["result"] == PUT_LOCATION
+
+def test_create_admin_not_json(controller):
+    request = MagicMock()
+    request.is_json = False
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 400
+    assert "is not json" in response["response"].get_json()["detail"]
+
+
+def test_create_admin_missing_fields(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {"admin_email": "admin@test.com"}
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 400
+    assert "Missing fields" in response["response"].get_json()["detail"]
+
+
+def test_create_admin_invalid_auth(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {
+        "admin_email": "admin@test.com",
+        "admin_password": "1234",
+        "name": "New",
+        "surname": "Admin",
+        "email": "new@admin.com",
+        "password": "pass"
+    }
+
+    controller.user_service.mail_exists.return_value = None
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 403
+    assert "not admin or not check password hash" in response["response"].get_json()["detail"]
+
+
+def test_create_admin_not_admin_role(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {
+        "admin_email": "admin@test.com",
+        "admin_password": "1234",
+        "name": "New",
+        "surname": "Admin",
+        "email": "new@admin.com",
+        "password": "pass"
+    }
+
+    fake_admin = MagicMock()
+    fake_admin.password = "1234"
+    fake_admin.role = "student"
+
+    controller.user_service.mail_exists.return_value = fake_admin
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 403
+    assert "is not admin" in response["response"].get_json()["detail"]
+
+
+def test_create_admin_invalid_params(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {
+        "admin_email": "admin@test.com",
+        "admin_password": "1234",
+        "name": "New",
+        "surname": "Admin",
+        "email": "new@admin.com",
+        "password": "pass"
+    }
+
+    fake_admin = MagicMock()
+    fake_admin.password = "1234"
+    fake_admin.role = "admin"
+
+    controller.user_service.mail_exists = MagicMock(return_value=fake_admin)
+    controller._check_create_user_params = MagicMock(return_value=(False, "Invalid email"))
+    controller.user_service.create = MagicMock()
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 400
+    assert "Invalid email" in response["response"].get_json()["detail"]
+
+def test_create_admin_create_fails(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {
+        "admin_email": "admin@test.com",
+        "admin_password": "1234",
+        "name": "New",
+        "surname": "Admin",
+        "email": "new@admin.com",
+        "password": "pass"
+    }
+
+    fake_admin = MagicMock()
+    fake_admin.password = "1234"
+    fake_admin.role = "admin"
+
+    controller.user_service.mail_exists = MagicMock(return_value=fake_admin)
+    controller._check_create_user_params = MagicMock(return_value=(True, "Ok"))
+    controller.user_service.create = MagicMock(side_effect=Exception("DB error"))
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 500
+    assert "DB error" in response["response"].get_json()["detail"]
+
+def test_create_admin_success(controller):
+    request = MagicMock()
+    request.is_json = True
+    request.get_json.return_value = {
+        "admin_email": "admin@test.com",
+        "admin_password": "1234",
+        "name": "New",
+        "surname": "Admin",
+        "email": "new@admin.com",
+        "password": "pass"
+    }
+
+    fake_admin = MagicMock()
+    fake_admin.password = "1234"
+    fake_admin.role = "admin"
+
+    controller.user_service.mail_exists = MagicMock(return_value=fake_admin)
+    controller._check_create_user_params = MagicMock(return_value=(True, "Ok"))
+    controller.user_service.create = MagicMock(return_value=True)
+
+    response = controller.create_admin_user(request)
+
+    assert response["code_status"] == 201
+    assert response["response"].get_json()["message"] == "Admin user created successfully"
+
+def test_login_admin_success(app, controller):
+    with app.test_request_context():
+        request = MagicMock()
+        login_response = {
+            "code_status": 200,
+            "response": MagicMock()
+        }
+        login_response["response"].get_json.return_value = {
+            "data": {
+                "role": "admin",
+                "name": "Admin"
+            }
+        }
+
+        controller.login_users = MagicMock(return_value=login_response)
+
+        response = controller.login_admin(request)
+
+        assert response["code_status"] == 200
+        assert response["response"].get_json()["message"] == "Admin login successful"
+
+def test_login_admin_not_admin(controller):
+    request = MagicMock()
+    login_response = {
+        "code_status": 200,
+        "response": MagicMock()
+    }
+    login_response["response"].get_json.return_value = {
+        "data": {
+            "role": "student"  #no admin
+        }
+    }
+
+    controller.login_users = MagicMock(return_value=login_response)
+
+    response = controller.login_admin(request)
+
+    assert response["code_status"] == 403
+    assert "is not 'admin'" in response["response"].get_json()["detail"]
+
+def test_login_admin_failed(controller):
+    request = MagicMock()
+    login_response = {
+        "code_status": 403,
+        "response": MagicMock()
+    }
+
+    controller.login_users = MagicMock(return_value=login_response)
+
+    response = controller.login_admin(request)
+
+    assert response["code_status"] == 403
