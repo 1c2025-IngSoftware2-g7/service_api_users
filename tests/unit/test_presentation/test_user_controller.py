@@ -1,9 +1,12 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from werkzeug.security import generate_password_hash
-import json
+import uuid
 
 from presentation.user_controller import UserController
+from headers import PUT_LOCATION
+
+user_id = uuid.uuid4()
 
 @pytest.fixture
 def mock_user():
@@ -390,3 +393,60 @@ def test_validate_registration_pin_exception(controller, mock_error_json):
     
     assert result["code_status"] == 500
     assert "mocked error" in result["response"]["error"]
+
+
+def test_set_location_missing_data(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": None, "longitude": None}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Location is required" in response["response"].get_json()["detail"]
+
+
+def test_set_location_invalid_latitude(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "999", "longitude": "0"}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Invalid latitude" in response["response"].get_json()["detail"]
+
+
+def test_set_location_invalid_longitude(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "0", "longitude": "-999"}
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 400
+    assert "Invalid longitude" in response["response"].get_json()["detail"]
+
+
+def test_set_location_user_not_found(controller):
+    # location válida
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "45.0", "longitude": "60.0"}
+
+    # Simula que el usuario no existe
+    controller.get_specific_users = MagicMock(return_value={"code_status": 404})
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 404
+    assert "was not found" in response["response"].get_json()["detail"]
+
+
+def test_set_location_success(controller):
+    request = MagicMock()
+    request.get_json.return_value = {"latitude": "45.0", "longitude": "60.0"}
+
+    controller.get_specific_users = MagicMock(return_value={"code_status": 200})
+    controller.user_service.set_location = MagicMock()
+
+    response = controller.set_user_location(user_id, request)
+
+    assert response["code_status"] == 200
+    assert response["response"].get_json()["result"] == PUT_LOCATION
