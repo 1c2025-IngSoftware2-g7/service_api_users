@@ -114,14 +114,14 @@ class UserService:
         """Iniciar el proceso de recuperación de contraseña"""
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"error": "No user found with this email", "code": 404}
+            return {"message": "No user found with this email", "code": 404}
 
         # Verificar si ya existe un PIN activo
         existing_pin = self.user_repository.get_active_pin(
             user.uuid, "password_recovery")
         if existing_pin:
             return {
-                "error": "There's already an active PIN for this user. Please wait 10 minutes.",
+                "message": "There's already an active PIN for this user. Please wait 10 minutes.",
                 "code": 429
             }
 
@@ -142,7 +142,7 @@ class UserService:
         )
 
         if not email_sent:
-            return {"error": "Failed to send email", "code": 500}
+            return {"message": "Failed to send email", "code": 500}
 
         return {
             "message": "Password recovery process initiated",
@@ -152,11 +152,11 @@ class UserService:
     def validate_recovery_pin(self, email: str, pin_code: str) -> dict:
         """Valida un PIN de recuperación de contraseña"""
         if not email or not pin_code:
-            return {"error": "Email and PIN are required", "code": 400}
+            return {"message": "Email and PIN are required", "code": 400}
 
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"error": "No user found with this email", "code": 404}
+            return {"message": "No user found with this email", "code": 404}
 
 
         is_valid = self.user_repository.validate_and_use_pin(
@@ -167,7 +167,7 @@ class UserService:
 
         if not is_valid:
             return {
-                "error": "Invalid or expired PIN. Please generate a new one",
+                "message": "Invalid or expired PIN. Please generate a new one",
                 "code": 401
             }
 
@@ -176,17 +176,17 @@ class UserService:
     def update_password(self, email, new_password):
         """Actualiza la contraseña de un usuario"""
         if not email or not new_password:
-            return {"error": "Email and new password are required", "code": 400}
+            return {"message": "Email and new password are required", "code": 400}
 
         # Verificar que el usuario existe
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"error": "No user found with this email", "code": 404}
+            return {"message": "No user found with this email", "code": 404}
 
         # Actualizar contraseña
         success = self.user_repository.update_user_password(email, new_password)
         if not success:
-            return {"error": "Failed to update password", "code": 500}
+            return {"message": "Failed to update password", "code": 500}
 
         # Invalidar todos los PINs existentes
         self.user_repository.invalidate_all_pins(user.uuid)
@@ -197,14 +197,14 @@ class UserService:
         """Iniciar el proceso de confirmación de registro"""
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"error": "No user found with this email", "code": 404}
+            return {"message": "No user found with this email", "code": 404}
 
         # Verificar si ya existe un PIN activo
         existing_pin = self.user_repository.get_active_pin(
             user.uuid, "registration")
         if existing_pin:
             return {
-                "error": "There's already an active registration PIN for this user. Please wait 10 minutes.",
+                "message": "There's already an active registration PIN for this user. Please wait 10 minutes.",
                 "code": 429
             }
 
@@ -222,7 +222,7 @@ class UserService:
         )
 
         if not email_sent:
-            return {"error": "Failed to send email", "code": 500}
+            return {"message": "Failed to send email", "code": 500}
 
         return {
             "message": "Registration confirmation PIN generated",
@@ -232,12 +232,12 @@ class UserService:
     def validate_registration_pin(self, email, pin_code):
         """Valida un PIN de confirmación de registro"""
         if not email or not pin_code:
-            return {"error": "Email and PIN are required", "code": 400}
+            return {"message": "Email and PIN are required", "code": 400}
 
         # Verificar que el usuario existe
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"error": "No user found with this email", "code": 404}
+            return {"message": "No user found with this email", "code": 404}
 
         # Validar el PIN
         is_valid = self.user_repository.validate_and_use_pin(
@@ -248,7 +248,7 @@ class UserService:
 
         if not is_valid:
             return {
-                "error": "Invalid or expired registration PIN. Please request a new one",
+                "message": "Invalid or expired registration PIN. Please request a new one",
                 "code": 401
             }
 
