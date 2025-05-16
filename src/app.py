@@ -15,7 +15,7 @@ CORS(
     origins=["*"],
     supports_credentials=True,
     allow_headers=["Content-Type"],
-    methods=["GET", "POST", "OPTIONS"],
+    methods=["GET", "POST", "OPTIONS", "PUT"],
 )
 
 users_app.config.update(SESSION_COOKIE_SECURE=True, SESSION_COOKIE_SAMESITE="None")
@@ -265,7 +265,7 @@ def validate_registration_pin(user_email):
     200: Description: Account successfully verified
     400: Description: Missing data
     401: Description: Invalid or expired PIN
-    404: Description: User not found
+    S: Description: User not found
     """
     data = request.get_json()
     if not data or "pin" not in data:
@@ -274,6 +274,7 @@ def validate_registration_pin(user_email):
     pin_code = data["pin"]
     result = user_controller.validate_registration_pin(user_email, pin_code)
     return result["response"], result["code_status"]
+
 
 @users_app.put("/users/admin/status")
 def admin_change_user_status():
