@@ -40,7 +40,7 @@ services:
       - app
     networks:
       - users_network
-    command: pytest -v -s --cov=src --cov-report=xml:/coverage/coverage.xml tests
+    command: /bin/sh -c "pip install -e . && pytest -v -s --cov=src --cov-report=xml:/coverage/coverage.xml tests"
     volumes:
       - ./coverage:/coverage
       - ./src:/src

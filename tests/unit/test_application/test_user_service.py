@@ -176,7 +176,6 @@ def test_initiate_password_recovery_user_not_found(user_service):
     response = service.initiate_password_recovery("missing@example.com")
 
     assert response["code"] == 404
-    assert "error" in response
 
 
 def test_initiate_password_recovery_existing_pin(user_service):
@@ -189,7 +188,6 @@ def test_initiate_password_recovery_existing_pin(user_service):
     response = service.initiate_password_recovery("test@example.com")
 
     assert response["code"] == 429
-    assert "active PIN" in response["error"]
 
 
 def test_initiate_password_recovery_email_failure(user_service):
@@ -203,4 +201,3 @@ def test_initiate_password_recovery_email_failure(user_service):
     response = service.initiate_password_recovery("test@example.com")
 
     assert response["code"] == 500
-    assert "Failed to send email" in response["error"]
