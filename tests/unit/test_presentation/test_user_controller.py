@@ -1,10 +1,9 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from werkzeug.security import generate_password_hash
-from flask import jsonify
+import json
 
 from presentation.user_controller import UserController
-from presentation.user_controller import get_error_json  
 
 @pytest.fixture
 def mock_user():
@@ -82,11 +81,13 @@ def test_create_user_success(controller, mock_user, mock_request):
     assert result["response"].json["data"]["email"] == "user.test@gmail.com"
 
 
-def test_create_user_conflict_email(app, controller):
-    controller.user_service.mail_exists.return_value = True
+def test_create_user_conflict_email(controller):
+    controller.user_service.mail_exists = MagicMock(return_value=True)
     controller._check_create_user_params = MagicMock(return_value=(True, "Ok"))
-
-    request_data = {
+    
+    mock_request = MagicMock()
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
         "name": "Test",
         "surname": "User",
         "password": "password",
@@ -95,10 +96,9 @@ def test_create_user_conflict_email(app, controller):
         "role": "student"
     }
 
-    client = app.test_client()
-    response = client.post("/users", json=request_data)
+    response = controller.create_users(mock_request)
 
-    assert response.status_code == 409
+    assert response['code_status'] == 409
 
 
 def test_login_user_success(controller, mock_user, app):
