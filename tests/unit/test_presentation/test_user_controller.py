@@ -118,20 +118,22 @@ def test_login_user_success(controller, mock_user, app):
     assert result["code_status"] == 200
 
 
-def test_login_user_wrong_password(app, controller, mock_user):
-    controller.user_service.mail_exists.return_value = mock_user.uuid
-    mock_user.password = generate_password_hash("wrongpass")
-    controller.user_service.get_specific_users.return_value = mock_user
+def test_login_user_wrong_password(controller, mock_user):
+    controller.user_service.mail_exists = MagicMock(return_value=mock_user)
+    controller.user_service.get_specific_users = MagicMock(return_value=mock_user)
 
-    request_data = {
+    mock_user.password = generate_password_hash("correctpassword")
+
+    mock_request = MagicMock()
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
         "email": "user.test@gmail.com",
-        "password": "invalid"
+        "password": "wrongpassword"
     }
 
-    client = app.test_client()
-    response = client.post("/users/login", json=request_data)
+    response = controller.login_users(mock_request)
 
-    assert response.status_code == 403
+    assert response["code_status"] == 403
 
 
 def test_delete_user_success(app, controller, mock_user):
