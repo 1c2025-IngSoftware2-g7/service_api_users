@@ -1,4 +1,3 @@
-# application/email_service.py
 import smtplib
 from email.mime.text import MIMEText
 from flask import current_app
