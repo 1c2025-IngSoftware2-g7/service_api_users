@@ -10,7 +10,7 @@ def user_service():
     mock_google = MagicMock()
     mock_email = MagicMock()
     service = UserService(mock_repo, mock_google, mock_email)
-    return service, mock_repo, mock_google
+    return service, mock_repo, mock_google, mock_email
 
 
 def test_get_users(user_service):
@@ -74,7 +74,7 @@ def test_mail_exists(user_service):
 
 
 def test_login_user_with_google(user_service):
-    service, _, google = user_service
+    service, _, google, _ = user_service
     google.authorize_redirect.return_value = "redirect_url"
 
     result = service.login_user_with_google("admin")
@@ -83,7 +83,7 @@ def test_login_user_with_google(user_service):
 
 
 def test_authorize(user_service):
-    service, _, google = user_service
+    service, _, google, _ = user_service
     google.authorize_access_token.return_value = "token"
     google.get_user_info.return_value = {"email": "test@test.com"}
 
@@ -95,7 +95,7 @@ def test_authorize(user_service):
 
 
 def test_create_users_if_not_exist_user_exists(user_service):
-    service, repo, _ = user_service
+    service, repo, *_ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.create_users_if_not_exist({"email": "test@test.com"})
@@ -105,7 +105,7 @@ def test_create_users_if_not_exist_user_exists(user_service):
 
 
 def test_create_users_if_not_exist_user_not_exists(user_service):
-    service, repo, _ = user_service
+    service, repo, *_ = user_service
     repo.get_user_with_email.side_effect = [None, {"email": "test@test.com"}]
 
     result = service.create_users_if_not_exist({"email": "test@test.com"})
@@ -115,7 +115,7 @@ def test_create_users_if_not_exist_user_not_exists(user_service):
 
 
 def test_verify_user_existence(user_service):
-    service, repo, _ = user_service
+    service, repo, *_ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.verify_user_existence({"email": "test@test.com"})
@@ -125,7 +125,7 @@ def test_verify_user_existence(user_service):
 
 
 def test_create_users_already_exists(user_service):
-    service, repo, _ = user_service
+    service, repo, *_ = user_service
     repo.get_user_with_email.return_value = {"email": "test@test.com"}
 
     result = service.create_users({"email": "test@test.com"})
@@ -135,7 +135,7 @@ def test_create_users_already_exists(user_service):
 
 
 def test_create_users_not_exists(user_service):
-    service, repo, _ = user_service
+    service, repo, *_ = user_service
     repo.get_user_with_email.side_effect = [None, {"email": "test@test.com"}]
 
     result = service.create_users({"email": "test@test.com"})
@@ -145,10 +145,59 @@ def test_create_users_not_exists(user_service):
 
 
 def test_verify_google_token(user_service):
-    service, _, google = user_service
+    service, _, google, _ = user_service
     google.verify_google_token.return_value = {"valid": True}
 
     result = service.verify_google_token("sometoken")
 
     assert result == {"valid": True}
     google.verify_google_token.assert_called_once_with("sometoken")
+
+
+def test_initiate_password_recovery_success(user_service):
+    service, repo, _, email = user_service
+    user = MagicMock()
+    user.uuid = "user-uuid"
+    repo.get_user_with_email.return_value = user
+    repo.get_active_pin.return_value = None
+    email.send_pin_email.return_value = True
+
+    response = service.initiate_password_recovery("test@example.com")
+
+    assert response["code"] == 200
+    repo.create_pin.assert_called_once()
+    email.send_pin_email.assert_called_once()
+
+
+def test_initiate_password_recovery_user_not_found(user_service):
+    service, repo, _, _ = user_service
+    repo.get_user_with_email.return_value = None
+
+    response = service.initiate_password_recovery("missing@example.com")
+
+    assert response["code"] == 404
+
+
+def test_initiate_password_recovery_existing_pin(user_service):
+    service, repo, *_= user_service
+    user = MagicMock()
+    user.uuid = "user-uuid"
+    repo.get_user_with_email.return_value = user
+    repo.get_active_pin.return_value = "some_pin"
+
+    response = service.initiate_password_recovery("test@example.com")
+
+    assert response["code"] == 429
+
+
+def test_initiate_password_recovery_email_failure(user_service):
+    service, repo, _, email = user_service
+    user = MagicMock()
+    user.uuid = "user-uuid"
+    repo.get_user_with_email.return_value = user
+    repo.get_active_pin.return_value = None
+    email.send_pin_email.return_value = False
+
+    response = service.initiate_password_recovery("test@example.com")
+
+    assert response["code"] == 500

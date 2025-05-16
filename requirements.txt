@@ -34,5 +34,4 @@ Authlib==1.5.2
 google-auth==2.29.0
 flask-swagger-ui==4.11.1
 psutil==7.0.0
-ddtrace==3.6.0
 structlog==25.3.0
