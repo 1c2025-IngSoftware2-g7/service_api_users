@@ -61,7 +61,7 @@ def get_users():
 
 
 @users_app.get("/users/admin")
-def get_users():
+def get_users_without_check_session():
     """
     Get all users.
     No session control.
