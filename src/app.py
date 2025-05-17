@@ -69,6 +69,16 @@ def get_specific_users(uuid):
     return result["response"], result["code_status"]
 
 
+@users_app.get("/users_check/<uuid:uuid>")
+def get_specific_users_in_check(uuid):
+    """
+    Get specific user.
+    Without session check.
+    """
+    result = user_controller.get_specific_users_in_check(uuid)
+    return result["response"], result["code_status"]
+
+
 @users_app.get("/users/teachers")
 def get_active_teachers():
     """

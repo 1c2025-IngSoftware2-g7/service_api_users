@@ -81,7 +81,15 @@ class UserController:
         teachers = [self._serialize_user(teacher) for teacher in teachers]
 
         return {"response": jsonify({"data": teachers}), "code_status": 200}
+    
+    def get_specific_users_in_check(self, uuid):
+        """
+        Get specific user.
+        Without session check.
+        """
 
+        return self._get_specific_users(uuid)
+    
     def get_specific_users(self, uuid):
         """
         Get specific user.
@@ -91,6 +99,13 @@ class UserController:
 
         if is_session_expired:
             return is_session_expired
+
+        return self._get_specific_users(uuid)
+
+    def _get_specific_users(self, uuid):
+        """
+        Get specific user.
+        """
 
         user = self.user_service.get_specific_users(
             uuid
