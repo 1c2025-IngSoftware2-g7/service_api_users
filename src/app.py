@@ -14,7 +14,7 @@ CORS(
     users_app,
     origins=["*"],
     supports_credentials=True,
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization", "X-User-Uuid"],
     methods=["GET", "POST", "OPTIONS", "PUT"],
 )
 
