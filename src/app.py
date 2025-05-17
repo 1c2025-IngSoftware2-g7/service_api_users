@@ -60,7 +60,7 @@ def get_users():
     return result["response"], result["code_status"]
 
 
-@users_app.get("/admin/users")
+@users_app.get("/users/admin")
 def get_users():
     """
     Get all users.
