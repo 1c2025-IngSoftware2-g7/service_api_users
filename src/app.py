@@ -60,6 +60,17 @@ def get_users():
     return result["response"], result["code_status"]
 
 
+@users_app.get("/admin/users")
+def get_users():
+    """
+    Get all users.
+    No session control.
+    """
+    result = user_controller.get_users()
+
+    return result["response"], result["code_status"]
+
+
 @users_app.get("/users/<uuid:uuid>")
 def get_specific_users(uuid):
     """

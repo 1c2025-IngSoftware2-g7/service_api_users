@@ -61,6 +61,7 @@ class UserController:
     def get_users(self):
         """
         Get all users.
+        Check session.
         """
 
         is_session_expired = self.is_session_valid()
@@ -68,6 +69,15 @@ class UserController:
         if is_session_expired:
             return is_session_expired
 
+        return self._get_users()
+    
+    def get_users_without_check_session(self):
+        return self._get_users()
+    
+    def _get_users(self):
+        """
+        Get all users.
+        """
         users = self.user_service.get_users()  # list of instance of Users() (domain)
         users = [self._serialize_user(user) for user in users]
 
