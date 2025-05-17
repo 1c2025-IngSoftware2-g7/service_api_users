@@ -66,7 +66,7 @@ def get_users():
     Get all users.
     No session control.
     """
-    result = user_controller.get_users()
+    result = user_controller.get_users_without_check_session()
 
     return result["response"], result["code_status"]
 
