@@ -312,3 +312,17 @@ class UsersRepository(BaseEntity):
         result = self.cursor.fetchone()
         self.conn.commit()
         return bool(result)
+
+    def update_notification(self, uuid, new_notif_status):
+        query = """
+        UPDATE users
+        SET notification = %s
+        WHERE uuid = %s
+        RETURNING uuid
+        """
+        self.cursor.execute(query, (new_notif_status, str(uuid),))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        if result:
+            return result[0]
+        return None

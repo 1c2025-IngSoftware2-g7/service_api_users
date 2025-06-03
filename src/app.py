@@ -304,3 +304,11 @@ def admin_change_user_status():
     """
     result = user_controller.admin_change_user_status(request)
     return result["response"], result["code_status"]
+
+@users_app.put("/users/<uuid:user_id>/notification")
+def update_user_notification(user_id):
+    """
+    Update the 'notification' field of a user.
+    """
+    result = user_controller.update_notification(user_id, request)
+    return result["response"], result["code_status"]
