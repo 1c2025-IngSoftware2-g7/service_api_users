@@ -56,6 +56,7 @@ class UserController:
                     else None
                 )
             ),
+            "notification": user.notification
         }
 
     def get_users(self):
@@ -803,3 +804,44 @@ class UserController:
                 ),
                 "code_status": 500,
             }
+
+    def update_notification(self, user_id, request):
+        """
+        Update the 'notification' field of a user.
+        """
+        method = "PUT"
+        url = f"/users/{user_id}/notification"
+        if not request.is_json:
+            return {
+                "response": get_error_json(
+                    "[CONTROLLER] error", "Request must be JSON", url, method
+                ),
+                "code_status": 400,
+            }
+
+        data = request.get_json()
+        notification = data.get("notification")
+
+        if notification is None or not isinstance(notification, bool):
+            return {
+                "response": get_error_json(
+                    "[CONTROLLER] error", "'notification' must be a boolean", url, method
+                ),
+                "code_status": 400,
+            }        
+
+        user = self.user_service.get_specific_users(user_id)
+
+        if user is None:
+            return {
+                "response": get_error_json(
+                    "[CONTROLLER] UserNotFound", f"User with id {user_id} not found", url, method
+                ),
+                "code_status": 404,
+            }
+
+        updated_user = self.user_service.update_notification(user_id, notification)
+        return {
+            "response": jsonify({"data": {"uuid": updated_user}}),
+            "code_status": 200,
+        }

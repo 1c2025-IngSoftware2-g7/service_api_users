@@ -20,6 +20,7 @@ def mock_user():
             self.status = "active"
             self.role = "student"
             self.location = None
+            self.notification = True
     return MockUser()
 
 @pytest.fixture
@@ -75,7 +76,8 @@ def test_create_user_success(controller, mock_user, mock_request):
         "password": "password",
         "email": "user.test@gmail.com",
         "status": "active",
-        "role": "student"
+        "role": "student",
+        "notification": True
     }
 
     result = controller.create_users(mock_request)
@@ -96,7 +98,8 @@ def test_create_user_conflict_email(controller):
         "password": "password",
         "email": "user.test@gmail.com",
         "status": "active",
-        "role": "student"
+        "role": "student",
+        "notification": True
     }
 
     response = controller.create_users(mock_request)
@@ -481,7 +484,8 @@ def test_create_admin_invalid_auth(controller):
         "name": "New",
         "surname": "Admin",
         "email": "new@admin.com",
-        "password": "pass"
+        "password": "pass",
+        "notification": True
     }
 
     controller.user_service.mail_exists.return_value = None
@@ -501,7 +505,8 @@ def test_create_admin_not_admin_role(controller):
         "name": "New",
         "surname": "Admin",
         "email": "new@admin.com",
-        "password": "pass"
+        "password": "pass",
+        "notification": True
     }
 
     fake_admin = MagicMock()
@@ -525,7 +530,8 @@ def test_create_admin_invalid_params(controller):
         "name": "New",
         "surname": "Admin",
         "email": "new@admin.com",
-        "password": "pass"
+        "password": "pass",
+        "notification": True
     }
 
     fake_admin = MagicMock()
@@ -550,7 +556,8 @@ def test_create_admin_create_fails(controller):
         "name": "New",
         "surname": "Admin",
         "email": "new@admin.com",
-        "password": "pass"
+        "password": "pass",
+        "notification": True
     }
 
     fake_admin = MagicMock()
@@ -575,7 +582,8 @@ def test_create_admin_success(controller):
         "name": "New",
         "surname": "Admin",
         "email": "new@admin.com",
-        "password": "pass"
+        "password": "pass",
+        "notification": True
     }
 
     fake_admin = MagicMock()

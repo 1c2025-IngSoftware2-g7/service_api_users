@@ -264,3 +264,9 @@ class UserService:
         result = self.user_repository.update_status(uuid, new_status)
         if not result:
             raise ValueError("Status could not be updated.")
+
+    def update_notification(self, uuid, new_notification_status): 
+        result = self.user_repository.update_notification(uuid, new_notification_status)
+        if not result:
+            raise ValueError("'notification' could not be updated.")
+        return result
