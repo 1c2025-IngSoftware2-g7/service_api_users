@@ -28,6 +28,7 @@ class UsersRepository(BaseEntity):
             user_params["status"],
             user_params["role"],
             location,
+            user_params.get("notification", True) 
         )
 
     def get_all_users(self):
@@ -42,6 +43,7 @@ class UsersRepository(BaseEntity):
                 u.email,
                 u.status,
                 u.role,
+                u.notification,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -88,6 +90,7 @@ class UsersRepository(BaseEntity):
                 u.email,
                 u.status,
                 u.role,
+                u.notification,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -116,6 +119,7 @@ class UsersRepository(BaseEntity):
                 u.email,
                 u.status,
                 u.role,
+                u.notification,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -133,7 +137,7 @@ class UsersRepository(BaseEntity):
         return self._parse_user(user[0])
 
     def insert_user(self, params_new_user):
-        query = "INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO users (name, surname, password, email, status, role, notification) VALUES (%s, %s, %s, %s, %s, %s, %s)"
         params = self._get_params_to_insert(params_new_user)
 
         self.cursor.execute(query, params=params)
@@ -153,6 +157,11 @@ class UsersRepository(BaseEntity):
         else:
             password = generate_password_hash(params_new_user["token"])
 
+        if "notification" in params_new_user:
+            notification = params_new_user["notification"]
+        else:
+            notification = True
+
         return (
             name,
             surname,
@@ -160,6 +169,7 @@ class UsersRepository(BaseEntity):
             params_new_user["email"],
             params_new_user["status"],
             params_new_user["role"],
+            notification,
         )
 
     def delete_users(self, user_id):

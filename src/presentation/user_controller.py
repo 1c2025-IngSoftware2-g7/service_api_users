@@ -56,6 +56,7 @@ class UserController:
                     else None
                 )
             ),
+            "notification": user.notification
         }
 
     def get_users(self):

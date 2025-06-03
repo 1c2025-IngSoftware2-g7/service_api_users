@@ -120,8 +120,8 @@ def test_insert_user(users_repository, mock_db_connection_and_cursor, password_h
     users_repository.insert_user(params_new_user)
 
     mock_cursor.execute.assert_called_once_with(
-        'INSERT INTO users (name, surname, password, email, status, role) VALUES (%s, %s, %s, %s, %s, %s)',
-        params=('Juan', 'Perez', password, 'juan.perez@gmail.com', 'active', 'admin')
+        'INSERT INTO users (name, surname, password, email, status, role, notification) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+        params=('Juan', 'Perez', password, 'juan.perez@gmail.com', 'active', 'admin', True)
     )
 
 

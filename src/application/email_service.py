@@ -1,7 +1,10 @@
 import smtplib
 from email.mime.text import MIMEText
-from flask import current_app
 import os
+
+from logger_config import get_logger
+
+logger = get_logger("api-users")
 
 
 class EmailService:
@@ -32,8 +35,8 @@ class EmailService:
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
 
-            current_app.logger.info(f"Email enviado a {recipient_email}")
+            logger.info(f"Email enviado a {recipient_email}")
             return True
         except Exception as e:
-            current_app.logger.error(f"Error enviando email: {str(e)}")
+            logger.error(f"Error enviando email: {str(e)}")
             return False
