@@ -74,3 +74,6 @@ VALUES ('Admin', 'Admin', '123456789', 'admin@admin.com', 'active', 'admin');
 
 ALTER TABLE users
 ADD COLUMN notification BOOLEAN DEFAULT true;
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS id_biometrico TEXT DEFAULT NULL;

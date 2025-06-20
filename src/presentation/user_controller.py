@@ -56,7 +56,8 @@ class UserController:
                     else None
                 )
             ),
-            "notification": user.notification
+            "notification": user.notification,
+            "id_biometrico": user.id_biometrico
         }
 
     def get_users(self):
@@ -844,4 +845,65 @@ class UserController:
         return {
             "response": jsonify({"data": {"uuid": updated_user}}),
             "code_status": 200,
+        }
+
+    def login_biometric(self, request):
+        """
+        Biometric login handler
+        """
+        url = "/users/login/biometric"
+        if not request.is_json:
+            return {
+                "response": get_error_json(
+                    BAD_REQUEST, "Request must be JSON", url, "POST"
+                ),
+                "code_status": 400,
+            }
+
+        data = request.get_json()
+        email = data.get("email")
+        id_biometrico = data.get("id_biometrico")
+
+        if not email or not id_biometrico:
+            return {
+                "response": get_error_json(
+                    BAD_REQUEST, "Email and id_biometrico are required", url, "POST"
+                ),
+                "code_status": 400,
+            }
+
+        user = self.user_service.mail_exists(email)
+        if not user:
+            return {
+                "response": get_error_json(
+                    NOT_USER, f"The email {email} was not found", url, "POST"
+                ),
+                "code_status": 404,
+            }
+
+        if user.status == "disabled":
+            return {
+                "response": get_error_json(
+                    "User blocked", "This account has been disabled", url, "POST"
+                ),
+                "code_status": 403,
+            }
+
+        if user.id_biometrico != id_biometrico:
+            return {
+                "response": get_error_json(
+                    "Biometric mismatch", "Invalid biometric credentials", url, "POST"
+                ),
+                "code_status": 401,
+            }
+
+        session["user"] = email
+        user_data = self._serialize_user(user)
+
+        return {
+            "response": jsonify({
+                "message": "Biometric login successful",
+                "data": user_data
+            }),
+            "code_status": 200
         }

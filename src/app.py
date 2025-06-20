@@ -312,3 +312,19 @@ def update_user_notification(user_id):
     """
     result = user_controller.update_notification(user_id, request)
     return result["response"], result["code_status"]
+
+
+@users_app.get("/users/login/biometric")
+def login_biometric():
+    """
+    Biometric login endpoint
+    Expects JSON: {"email": "user@example.com", "id_biometrico": "biometric_hash"}
+    Responses:
+    200: Successful login
+    400: Missing parameters
+    401: Biometric mismatch
+    403: User disabled
+    404: User not found
+    """
+    result = user_controller.login_biometric(request)
+    return result["response"], result["code_status"]

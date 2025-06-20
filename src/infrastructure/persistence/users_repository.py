@@ -28,7 +28,8 @@ class UsersRepository(BaseEntity):
             user_params["status"],
             user_params["role"],
             location,
-            user_params.get("notification", True) 
+            user_params.get("notification", True),
+            user_params.get("id_biometrico")
         )
 
     def get_all_users(self):
@@ -44,6 +45,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
+                u.id_biometrico,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -91,6 +93,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
+                u.id_biometrico,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -120,6 +123,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
+                u.id_biometrico,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -326,3 +330,4 @@ class UsersRepository(BaseEntity):
         if result:
             return result[0]
         return None
+    
