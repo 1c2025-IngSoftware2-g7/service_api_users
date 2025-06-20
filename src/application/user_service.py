@@ -271,7 +271,7 @@ class UserService:
             raise ValueError("'notification' could not be updated.")
         return result
 
-    def login_biometric(self, email: str, id_biometrico: str) -> dict:
+    def login_biometric(self, email: str, id_biometric: str) -> dict:
         """
         Authenticate user using biometric data
         Returns:
@@ -285,7 +285,10 @@ class UserService:
         if user.status == 'disabled':
             return {'user': None, 'message': 'Usuario bloqueado'}
 
-        if user.id_biometrico != id_biometrico:
+        if user.id_biometric != id_biometric:
             return {'user': None, 'message': 'Autenticación biométrica fallida'}
 
         return {'user': user, 'message': 'Autenticación exitosa'}
+
+    def update_biometric_id(self, user_id, id_biometric):
+        return self.user_repository.update_biometric_id(user_id, id_biometric)

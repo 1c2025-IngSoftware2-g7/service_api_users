@@ -29,7 +29,7 @@ class UsersRepository(BaseEntity):
             user_params["role"],
             location,
             user_params.get("notification", True),
-            user_params.get("id_biometrico")
+            user_params.get("id_biometric")
         )
 
     def get_all_users(self):
@@ -45,7 +45,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
-                u.id_biometrico,
+                u.id_biometric,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -93,7 +93,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
-                u.id_biometrico,
+                u.id_biometric,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -123,7 +123,7 @@ class UsersRepository(BaseEntity):
                 u.status,
                 u.role,
                 u.notification,
-                u.id_biometrico,
+                u.id_biometric,
                 JSON_BUILD_OBJECT(
                     'latitude', l.latitude,
                     'longitude', l.longitude
@@ -331,3 +331,14 @@ class UsersRepository(BaseEntity):
             return result[0]
         return None
     
+    def update_biometric_id(self, user_id, id_biometric):
+        query = """
+        UPDATE users
+        SET id_biometric = %s
+        WHERE uuid = %s
+        RETURNING uuid
+        """
+        self.cursor.execute(query, (id_biometric, str(user_id)))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        return bool(result)

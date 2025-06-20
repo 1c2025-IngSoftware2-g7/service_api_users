@@ -57,7 +57,7 @@ class UserController:
                 )
             ),
             "notification": user.notification,
-            "id_biometrico": user.id_biometrico
+            "id_biometric": user.id_biometric
         }
 
     def get_users(self):
@@ -862,12 +862,12 @@ class UserController:
 
         data = request.get_json()
         email = data.get("email")
-        id_biometrico = data.get("id_biometrico")
+        id_biometric = data.get("id_biometric")
 
-        if not email or not id_biometrico:
+        if not email or not id_biometric:
             return {
                 "response": get_error_json(
-                    BAD_REQUEST, "Email and id_biometrico are required", url, "POST"
+                    BAD_REQUEST, "Email and id_biometric are required", url, "POST"
                 ),
                 "code_status": 400,
             }
@@ -889,7 +889,7 @@ class UserController:
                 "code_status": 403,
             }
 
-        if user.id_biometrico != id_biometrico:
+        if user.id_biometric != id_biometric:
             return {
                 "response": get_error_json(
                     "Biometric mismatch", "Invalid biometric credentials", url, "POST"
@@ -907,3 +907,55 @@ class UserController:
             }),
             "code_status": 200
         }
+
+    def update_biometric_id(self, user_id, request):
+        if not request.is_json:
+            return {
+                "response": get_error_json(
+                    BAD_REQUEST,
+                    "Request must be JSON",
+                    f"/users/{user_id}/biometric",
+                    "PUT"
+                ),
+                "code_status": 400
+            }
+
+        data = request.get_json()
+        if "id_biometric" not in data:
+            return {
+                "response": get_error_json(
+                    BAD_REQUEST,
+                    "id_biometric is required",
+                    f"/users/{user_id}/biometric",
+                    "PUT"
+                ),
+                "code_status": 400
+            }
+
+        try:
+            success = self.user_service.update_biometric_id(
+                user_id, data["id_biometric"])
+            if success:
+                return {
+                    "response": jsonify({"message": "Biometric ID updated successfully"}),
+                    "code_status": 200
+                }
+            return {
+                "response": get_error_json(
+                    "Update failed",
+                    "User not found or update failed",
+                    f"/users/{user_id}/biometric",
+                    "PUT"
+                ),
+                "code_status": 404
+            }
+        except Exception as e:
+            return {
+                "response": get_error_json(
+                    "Server Error",
+                    str(e),
+                    f"/users/{user_id}/biometric",
+                    "PUT"
+                ),
+                "code_status": 500
+            }
