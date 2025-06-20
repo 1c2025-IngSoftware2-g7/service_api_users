@@ -11,7 +11,7 @@ in some cases, services.
 
 class User:
     def __init__(
-        self, uuid, name, surname, password, email, status, role, location=None, notification=True
+        self, uuid, name, surname, password, email, status, role, location=None, notification=True, id_biometric=None
     ):
         # attributes
         self.uuid = uuid
@@ -23,4 +23,5 @@ class User:
         self.role = role
         self.location = location
         self.notification = notification
+        self.id_biometric = id_biometric
         return
