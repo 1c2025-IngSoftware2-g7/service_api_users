@@ -21,6 +21,7 @@ def mock_user():
             self.role = "student"
             self.location = None
             self.notification = True
+            self.id_biometric = None
     return MockUser()
 
 @pytest.fixture
