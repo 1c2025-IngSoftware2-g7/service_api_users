@@ -314,7 +314,7 @@ def update_user_notification(user_id):
     return result["response"], result["code_status"]
 
 
-@users_app.get("/users/login/biometric")
+@users_app.post("/users/login/biometric")
 def login_biometric():
     """
     Biometric login endpoint
