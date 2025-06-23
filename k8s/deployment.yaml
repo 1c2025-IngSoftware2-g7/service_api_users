@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-users
+  labels:
+    app: api-users
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-users
+  template:
+    metadata:
+      labels:
+        app: api-users
+    spec:
+      containers:
+        - name: api-users
+          image: us-central1-docker.pkg.dev/crypto-isotope-463815-t0/docker-repository/api-users:v2
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
