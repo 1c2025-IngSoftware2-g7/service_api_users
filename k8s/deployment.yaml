@@ -20,3 +20,22 @@ spec:
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: classconnect_users
+            - name: DB_USER
+              value: user_db
+            - name: DB_PASSWORD
+              value: classconect-users
+            - name: SECRET_KEY_SESSION
+              value: ids2g71c2025
+            - name: OAUTH_REDIRECT_URI
+              value: https://service-api-users.onrender.com/users/authorize
+            - name: GOOGLE_CLIENT_SECRET
+              value: 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
+            - name: GOOGLE_CLIENT_ID
+              value: 985128316026-v767el5qp9lanikh52up5m4ifs5usqdd.apps.googleusercontent.com
