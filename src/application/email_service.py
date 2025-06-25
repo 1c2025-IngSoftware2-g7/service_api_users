@@ -35,8 +35,8 @@ class EmailService:
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
 
-            logger.info(f"Email enviado a {recipient_email}")
+            logger.info(f"Email sent to {recipient_email}")
             return True
         except Exception as e:
-            logger.error(f"Error enviando email: {str(e)}")
+            logger.error(f"Error sending email: {str(e)}")
             return False

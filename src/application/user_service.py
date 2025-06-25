@@ -132,7 +132,7 @@ class UserService:
         self.user_repository.create_pin(user.uuid, pin_code, "password_recovery")
 
         # En producción aquí iría el envío del email
-        logger.info(f"PIN generado para {email}: {pin_code}")
+        logger.info(f"PIN generated for {email}: {pin_code}")
 
         # Enviar email
         email_sent = self.email_service.send_pin_email(

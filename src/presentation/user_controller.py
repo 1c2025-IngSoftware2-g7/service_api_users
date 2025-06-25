@@ -225,11 +225,11 @@ class UserController:
             }
 
         if self.get_specific_users(user_id)["code_status"] == 200:
-            logger.debug("User exists")
+            logger.info("User exists")
             self.user_service.set_location(user_id, latitude, longitude)
             return {"response": jsonify({"result": PUT_LOCATION}), "code_status": 200}
 
-        logger.debug("User not exists")
+        logger.info("User not exists")
         return {
             "response": get_error_json(
                 NOT_USER,
@@ -473,13 +473,13 @@ class UserController:
         """
         env = os.getenv("FLASK_ENV")
         if env == "testing":
-            logger.info("In TEST, without session expiration.")
+            logger.debug("In TEST, without session expiration.")
             return None
         else:
-            logger.info("Check if the session has expired.")
+            logger.warning("Check if the session has expired.")
 
         if "user" not in session or not session.permanent:
-            logger.info("Session not valid.")
+            logger.warning("Session not valid.")
             return {
                 "response": get_error_json("Unauthorized", "Session expired", "/users"),
                 "code_status": 401,

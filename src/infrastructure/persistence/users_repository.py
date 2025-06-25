@@ -56,7 +56,7 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query)
         users = self.cursor.fetchall()
-        logger.debug(f"users is {users}")
+        logger.info(f"users is {users}")
 
         # Returns an instance of the domain:
         result = []
@@ -73,7 +73,7 @@ class UsersRepository(BaseEntity):
         """
         self.cursor.execute(query)
         users = self.cursor.fetchall()
-        logger.debug(f"teachers are {users}")
+        logger.info(f"teachers are {users}")
 
         result = []
         for user in users:
