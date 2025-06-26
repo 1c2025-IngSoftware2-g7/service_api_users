@@ -201,3 +201,47 @@ def test_initiate_password_recovery_email_failure(user_service):
     response = service.initiate_password_recovery("test@example.com")
 
     assert response["code"] == 500
+
+def test_get_active_teachers_returns_users(user_service):
+    service, repo, *_= user_service
+    expected_teachers = {
+        "response": {"data": [
+            {"email": "teacher1@example.com", "role": "teacher", "status": "active"},
+            {"email": "teacher2@example.com", "role": "teacher", "status": "active"},
+        ]},
+        "code_status": 200
+    }
+    repo.get_active_teachers.return_value = expected_teachers
+
+    result = service.get_active_teachers()
+
+    assert result == expected_teachers
+    repo.get_active_teachers.assert_called_once()
+
+def test_validate_recovery_pin_valid(user_service):
+    service, repo, *_= user_service
+    repo.get_user_with_email.return_value = {"email": "test@example.com"}
+    repo.validate_and_use_pin.return_value = True
+
+    result = service.validate_recovery_pin("test@example.com", "1234")
+
+    assert result["code"] == 200
+    assert "PIN validated" in result["message"]
+
+def test_validate_recovery_pin_invalid_pin(user_service):
+    service, repo, *_= user_service
+    repo.get_user_with_email.return_value = {"email": "test@example.com"}
+    repo.validate_and_use_pin.return_value = False
+
+    result = service.validate_recovery_pin("test@example.com", "wrongpin")
+
+    assert result["code"] == 401
+    assert "Invalid" in result["message"]
+
+def test_validate_recovery_pin_missing_user(user_service):
+    service, repo, *_= user_service
+    repo.get_user_with_email.return_value = None
+
+    result = service.validate_recovery_pin("nope@example.com", "1234")
+
+    assert result["code"] == 404
