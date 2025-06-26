@@ -1,9 +1,5 @@
-import uuid
-
-BASE_URL = "http://app:8080"
-
 def test_get_users(client):
-    response = client.get(f"{BASE_URL}/users")
+    response = client.get("/users")
     assert response.status_code == 200
 
     data = response.get_json()
@@ -20,5 +16,5 @@ def test_create_user(client):
         "role": "student",
         "notification": True
     }
-    response = client.post(f"{BASE_URL}/users", json=data)
+    response = client.post("/users", json=data)
     assert response.status_code == 201
