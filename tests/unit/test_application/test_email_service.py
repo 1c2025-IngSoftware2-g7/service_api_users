@@ -29,7 +29,7 @@ def test_send_pin_email_success(mock_smtp, mock_logger, email_service):
         email_service.smtp_password
     )
     mock_server.send_message.assert_called_once()
-    mock_logger.info.assert_called_once_with("Email enviado a test@example.com")
+    mock_logger.info.assert_called_once_with("Email sent to test@example.com")
     assert result is True
 
 

@@ -164,6 +164,16 @@ class UserController:
 
         if request.is_json:
             user = request.get_json()
+            if not user or "role" not in user:
+                return {
+                    "response": get_error_json(
+                        "[CONTROLLER] Missing parameter", 
+                        "email and password required",
+                        url,
+                        "POST"
+                    ),
+                    "code_status": 400,
+                }
 
             # Block manual assignment of the 'admin' role
             if user.get("role") == "admin":
@@ -284,6 +294,11 @@ class UserController:
         url = "/users/login"
         if request.is_json:
             data = request.get_json()
+            if not data or "email" not in data or "password" not in data:
+                return {
+                    "response": get_error_json("[CONTROLLER] Missing parameter", "email and password required", "/users/authorize"),
+                    "code_status": 400,
+                }
 
             email = data["email"]  # This contains mail
             password = data["password"]  # This contains password
@@ -374,7 +389,7 @@ class UserController:
         if missing_fields:
             return {
                 "response": get_error_json(
-                    BAD_REQUEST,
+                    f"[CONTROLLER] {BAD_REQUEST}",
                     f"Missing fields: {', '.join(missing_fields)}",
                     url,
                     "POST",
@@ -515,6 +530,12 @@ class UserController:
 
     def authorize_with_token(self, request):
         data = request.get_json()
+        if not data or "token" not in data:
+            return {
+                "response": get_error_json("[CONTROLLER] Missing parameter", "token required", "/users/authorize"),
+                "code_status": 400,
+            }
+
         token = data.get("token")
 
         user_info = self.user_service.verify_google_token(token)
@@ -550,7 +571,7 @@ class UserController:
         if self._validate_request(data, params) == False:
             return {
                 "response": get_error_json(
-                    BAD_REQUEST, "Request should have {params}", "/users/signup/google"
+                    f"[CONTROLLER] {BAD_REQUEST}", "Request should have {params}", "/users/signup/google"
                 ),
                 "code_status": 401,
             }
@@ -591,7 +612,7 @@ class UserController:
         if self._validate_request(data, params) == False:
             return {
                 "response": get_error_json(
-                    BAD_REQUEST, "Request should have {params}", "/users/login/google"
+                    f"[CONTROLLER] {BAD_REQUEST}", "Request should have {params}", "/users/login/google"
                 ),
                 "code_status": 401,
             }
@@ -821,7 +842,7 @@ class UserController:
             }
 
         data = request.get_json()
-        notification = data.get("notification")
+        notification = data.get("notification", None)
 
         if notification is None or not isinstance(notification, bool):
             return {
@@ -861,8 +882,8 @@ class UserController:
             }
 
         data = request.get_json()
-        email = data.get("email")
-        id_biometric = data.get("id_biometric")
+        email = data.get("email", None)
+        id_biometric = data.get("id_biometric", None)
 
         if not email or not id_biometric:
             return {
