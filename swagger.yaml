@@ -1,0 +1,528 @@
+openapi: 3.0.0
+info:
+  title: Users Controller API
+  version: 1.0.0
+  description: API for user management (login, registration, password recovery, etc.)
+
+paths:
+  /users/login:
+    post:
+      summary: User login
+      description: Logs in a user using their email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: myPassword123
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+
+  /users/admin/login:
+    post:
+      summary: Admin login
+      description: Logs in a user as an admin. Requires the user to have an admin role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Admin login successful
+        '403':
+          description: The user is not an admin
+        '401':
+          description: Login failed
+
+  /users/authorize:
+    get:
+      summary: Authorize user with Google
+      description: Handles user authorization through Google OAuth.
+      parameters:
+        - in: query
+          name: state
+          schema:
+            type: string
+          description: Role of the user
+      responses:
+        '200':
+          description: Google authorization successful
+        '404':
+          description: User not authorized by Google
+
+    post:
+      summary: Authorize with token
+      description: Authorizes a user using a Google token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Authorization successful
+        '400':
+          description: Missing token parameter
+        '401':
+          description: Invalid token
+
+  /users/signup/google:
+    post:
+      summary: Google signup
+      description: Creates a new user using a valid Google token and user information.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - email_verified
+                - email
+                - given_name
+                - family_name
+                - photo
+                - role
+              properties:
+                token:
+                  type: string
+                email_verified:
+                  type: boolean
+                email:
+                  type: string
+                given_name:
+                  type: string
+                family_name:
+                  type: string
+                photo:
+                  type: string
+                role:
+                  type: string
+                  example: student
+      responses:
+        '200':
+          description: User created successfully
+        '401':
+          description: Invalid token or request data
+
+  /users/login/google:
+    post:
+      summary: Google login
+      description: Logs in an existing user with a Google token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - email_verified
+                - email
+                - given_name
+                - family_name
+                - photo
+              properties:
+                token:
+                  type: string
+                email_verified:
+                  type: boolean
+                email:
+                  type: string
+                given_name:
+                  type: string
+                family_name:
+                  type: string
+                photo:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid token or user disabled
+  
+    get:
+      summary: Login user with Google (OAuth)
+      description: Login user with Google OAuth. Role query parameter optional.
+      parameters:
+        - in: query
+          name: role
+          schema:
+            default: student
+            type: string
+          description: User role (e.g. student, teacher)
+      responses:
+        '200':
+          description: Login successful
+
+
+  /users/{user_email}/password-recovery:
+    post:
+      summary: Initiate password recovery
+      description: Starts the password recovery process for a user by email.
+      parameters:
+        - in: path
+          name: user_email
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recovery initiated
+        '500':
+          description: Server error
+
+    put:
+      summary: Validate recovery PIN
+      description: Validates the PIN code sent to the user's email.
+      parameters:
+        - in: path
+          name: user_email
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: pin_code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PIN validated
+        '500':
+          description: Server error
+
+  /users/{user_email}/password:
+    put:
+      summary: Update user password
+      description: Updates the user's password after PIN validation.
+      parameters:
+        - in: path
+          name: user_email
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_password
+              properties:
+                new_password:
+                  type: string
+      responses:
+        '200':
+          description: Password updated
+        '500':
+          description: Server error
+
+  /users/{user_email}/confirm-registration:
+    post:
+      summary: Initiate registration confirmation
+      description: Sends a PIN code to the user’s email for registration confirmation.
+      parameters:
+        - in: path
+          name: user_email
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Confirmation initiated
+        '500':
+          description: Server error
+
+    put:
+      summary: Validate registration PIN
+      description: Validates the PIN for registration confirmation.
+      parameters:
+        - in: path
+          name: user_email
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: pin_code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PIN validated
+        '500':
+          description: Server error
+
+  /users/admin/status:
+    put:
+      summary: Admin change user status
+      description: Changes the status of a user (active/inactive) after admin authentication.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - admin_email
+                - admin_password
+                - uuid
+              properties:
+                admin_email:
+                  type: string
+                admin_password:
+                  type: string
+                uuid:
+                  type: string
+      responses:
+        '201':
+          description: User status updated
+        '400':
+          description: Missing fields or user not found
+        '403':
+          description: Invalid admin credentials
+        '500':
+          description: Server error
+
+  /users/{user_id}/notification:
+    put:
+      summary: Update user notifications
+      description: Updates the notification preferences of a user.
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notification
+              properties:
+                notification:
+                  type: boolean
+      responses:
+        '200':
+          description: Notification preference updated
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the service is running.
+      responses:
+        '200':
+          description: Service is healthy
+
+  /users:
+    get:
+      summary: Get all users
+      description: Retrieve all users.
+      responses:
+        '200':
+          description: List of users
+
+    post:
+      summary: Create a new user
+      description: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: User created successfully
+
+  /users/admin:
+    get:
+      summary: Get all users without session check
+      description: Retrieve all users without session control.
+      responses:
+        '200':
+          description: List of users
+
+    post:
+      summary: Create an admin user
+      description: Create a new admin user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Admin user created successfully
+
+  /users/{uuid}:
+    get:
+      summary: Get specific user
+      description: Retrieve a specific user by UUID.
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      responses:
+        '200':
+          description: User details
+        '404':
+          description: User not found
+
+    delete:
+      summary: Delete specific user
+      description: Delete a user by UUID.
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      responses:
+        '200':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+  /users_check/{uuid}:
+    get:
+      summary: Get specific user without session check
+      description: Retrieve a specific user by UUID without session control.
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      responses:
+        '200':
+          description: User details
+        '404':
+          description: User not found
+
+  /users/teachers:
+    get:
+      summary: Get active teachers
+      description: Retrieve users with role teacher and status active.
+      responses:
+        '200':
+          description: List of active teachers
+
+  /users/{user_id}/location:
+    put:
+      summary: Set user location
+      description: Add or update location for a user.
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Location updated
+
+  /users/login/biometric:
+    post:
+      summary: Biometric login
+      description: Login a user with biometric data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                id_biometric:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+        '400':
+          description: Missing parameters
+        '401':
+          description: Biometric mismatch
+        '403':
+          description: User disabled
+        '404':
+          description: User not found
+
+  /users/{user_id}/biometric:
+    put:
+      summary: Update biometric ID
+      description: Update biometric ID for a user.
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Biometric ID updated
