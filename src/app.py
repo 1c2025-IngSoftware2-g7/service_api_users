@@ -79,6 +79,13 @@ def get_specific_users(uuid):
     result = user_controller.get_specific_users(uuid)
     return result["response"], result["code_status"]
 
+@users_app.get("/users/<string:email>/email")
+def get_specific_users_with_email(email):
+    """
+    Get specific user with email.
+    """
+    result = user_controller.get_specific_users_with_email(email)
+    return result["response"], result["code_status"]
 
 @users_app.get("/users_check/<uuid:uuid>")
 def get_specific_users_in_check(uuid):
