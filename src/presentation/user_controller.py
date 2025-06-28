@@ -740,9 +740,13 @@ class UserController:
         """Controller for registration PIN validation"""
         try:
             result = self.user_service.validate_registration_pin(email, pin_code)
+            user = self._serialize_user(result["user"])
             return {
                 "response": jsonify(
-                    {"message": result["message"]}
+                    {
+                        "message": result["message"],
+                        "user": user
+                    }
                     if "message" in result
                     else {"error": result["error"]}
                 ),

@@ -248,13 +248,13 @@ class UserService:
 
         if not is_valid:
             return {
-                "message": "Invalid or expired registration PIN. Please request a new one",
+                "error": "Invalid or expired registration PIN. Please request a new one",
                 "code": 401
             }
 
         self.user_repository.activate_user(email)
 
-        return {"message": "Account verified successfully", "code": 200}
+        return {"message": "Account verified successfully", "code": 200, "user": user}
     
     def user_is_validated(self, uuid):
         """Returns whether a user is validated or not, this is seen if they use their PIN"""
