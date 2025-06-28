@@ -42,6 +42,11 @@ class UserService:
         """Get specific user."""
         user = self.user_repository.get_user(uuid)
         return user
+    
+    def get_specific_users_with_email(self, email):
+        """Get specific user."""
+        user = self.user_repository.get_user_with_email(email)
+        return user
 
     def delete(self, uuid):
         """Delete user."""
@@ -254,7 +259,7 @@ class UserService:
 
         self.user_repository.activate_user(email)
 
-        return {"message": "Account verified successfully", "code": 200}
+        return {"message": "Account verified successfully", "code": 200, "user": user}
     
     def user_is_validated(self, uuid):
         """Returns whether a user is validated or not, this is seen if they use their PIN"""

@@ -113,6 +113,23 @@ class UserController:
             return is_session_expired
 
         return self._get_specific_users(uuid)
+    
+    def get_specific_users_with_email(self, email): 
+        """
+        Get specific user with email.
+        """
+        user = self.user_service.get_specific_users_with_email(email)
+        if not user:
+            return {
+                "response": get_error_json(
+                    NOT_USER,
+                    f"The user with email {email} was not found",
+                    f"/users/<uuid:uuid>",
+                ),
+                "code_status": 404,
+            }
+        user = user = self._serialize_user(user)
+        return {"response": jsonify({"data": user}), "code_status": 200}
 
     def _get_specific_users(self, uuid):
         """
