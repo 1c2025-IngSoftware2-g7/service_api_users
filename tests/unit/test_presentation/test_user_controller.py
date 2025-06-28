@@ -652,3 +652,46 @@ def test_login_admin_failed(controller):
     response = controller.login_admin(request)
 
     assert response["code_status"] == 403
+
+
+def test_update_notification_success(controller, mock_user):
+    mock_request = MagicMock()
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {"notification": False}
+
+    controller.user_service.update_notification.return_value = str(
+        mock_user.uuid)
+    controller.user_service.get_specific_users.return_value = mock_user
+
+    response = controller.update_notification(mock_user.uuid, mock_request)
+
+    assert response["code_status"] == 200
+    assert response["response"].json["data"]["uuid"] == str(mock_user.uuid)
+
+
+def test_login_biometric_success(controller, mock_user, app):
+    mock_user.status = "active"
+    mock_user.id_biometric = "bio123"
+    controller.user_service.mail_exists.return_value = mock_user
+
+    mock_request = MagicMock()
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
+        "email": "user@test.com",
+        "id_biometric": "bio123"
+    }
+
+    with app.test_request_context():
+        response = controller.login_biometric(mock_request)
+
+    assert response["code_status"] == 200
+    assert "Biometric login successful" in response["response"].json["message"]
+
+
+def test_update_biometric_id_invalid_request(controller):
+    mock_request = MagicMock()
+    mock_request.is_json = False
+
+    response = controller.update_biometric_id("user123", mock_request)
+
+    assert response["code_status"] == 400

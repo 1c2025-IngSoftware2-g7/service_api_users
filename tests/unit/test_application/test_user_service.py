@@ -245,3 +245,20 @@ def test_validate_recovery_pin_missing_user(user_service):
     result = service.validate_recovery_pin("nope@example.com", "1234")
 
     assert result["code"] == 404
+
+
+def test_update_biometric_id_failure(user_service):
+    service, repo, *_ = user_service
+    repo.update_biometric_id.return_value = False
+
+    result = service.update_biometric_id("user123", "new_bio_id")
+
+    assert result is False
+
+
+# def test_login_biometric_invalid_data(user_service):
+#     service, *_ = user_service
+
+#     result = service.login_biometric(None, None)
+#     assert result["user"] is None
+#     assert "required" in result["message"]

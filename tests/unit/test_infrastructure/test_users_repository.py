@@ -287,3 +287,12 @@ def test_update_status(users_repository, mock_db_connection_and_cursor, uuid_1):
     mock_cursor.execute.assert_called_once()
     mock_conn.commit.assert_called_once()
     assert result is True
+
+
+def test_update_notification_failure(users_repository, mock_db_connection_and_cursor):
+    _, mock_cursor = mock_db_connection_and_cursor
+    mock_cursor.fetchone.return_value = None
+
+    result = users_repository.update_notification("user123", True)
+
+    assert result is None
