@@ -267,6 +267,19 @@ class UsersRepository(BaseEntity):
         self.conn.commit()
         return bool(result)
 
+    def has_used_pin(self, user_id: str) -> bool:
+        """Verifica si el usuario tiene algún PIN marcado como usado"""
+        query = """
+        SELECT 1
+        FROM pins
+        WHERE user_id = %s
+        AND used = TRUE
+        LIMIT 1
+        """
+        self.cursor.execute(query, (user_id,))
+        result = self.cursor.fetchone()
+        return bool(result)
+
     def update_user_password(self, email, new_password):
         """Actualiza la contraseña de un usuario"""
         query = """

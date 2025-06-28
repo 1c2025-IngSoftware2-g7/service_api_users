@@ -255,6 +255,10 @@ class UserService:
         self.user_repository.activate_user(email)
 
         return {"message": "Account verified successfully", "code": 200}
+    
+    def user_is_validated(self, uuid):
+        """Returns whether a user is validated or not, this is seen if they use their PIN"""
+        return self.user_repository.has_used_pin(uuid)
 
     def update_status(self, uuid, new_status):
         """
