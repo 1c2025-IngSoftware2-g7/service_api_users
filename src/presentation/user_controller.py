@@ -315,6 +315,14 @@ class UserController:
                     "code_status": 404,
                 }
 
+            if not self.user_service.user_is_validated(user_exists.uuid):
+                return {
+                    "response": get_error_json(
+                        "[CONTROLLER] User not validated", f"User {user_exists.uuid}", url, "POST"
+                    ),
+                    "code_status": 401
+                }
+
             user_serialized_from_db = self.user_service.get_specific_users(
                 user_exists.uuid
             )  # we get the instance
