@@ -117,6 +117,20 @@ class UserService:
         self.user_repository.insert_user(user_info)
         user = self.user_repository.get_user_with_email(user_info["email"])
         return user
+    
+    def create_users_federate(self, user_info):
+        user = self.user_repository.get_user_with_email(user_info["email"])
+        logger.info(f"In service - create_users - user: {user}")
+        if user != None:
+            return {"user": user, "exist": True}
+
+        logger.info(
+            f"User does not exist. Create user with the following parameters: {user_info}"
+        )
+
+        self.user_repository.insert_user(user_info)
+        user = self.user_repository.get_user_with_email(user_info["email"])
+        return {"user": user, "exist": False}
 
     def verify_google_token(self, token):
         return self.google.verify_google_token(token)

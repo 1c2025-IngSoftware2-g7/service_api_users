@@ -604,9 +604,10 @@ class UserController:
         ]
         data = request.get_json()
         if self._validate_request(data, params) == False:
+            logger.warning(f"[CONTROLLER] User not federate: {data}")
             return {
                 "response": get_error_json(
-                    f"[CONTROLLER] {BAD_REQUEST}", "Request should have {params}", "/users/signup/google"
+                    f"[CONTROLLER] {BAD_REQUEST}", "Request should have {params}", "/users/signup/google", params
                 ),
                 "code_status": 401,
             }
@@ -614,19 +615,30 @@ class UserController:
         token = data.get("token")
         user_info = self.user_service.verify_google_token(token)
         if not user_info:
+            logger.warning(f"[CONTROLLER] Token invalid: {data}")
             return {
                 "response": get_error_json(
-                    NOT_USER, "Token inválido", "/users/signup/google"
+                    NOT_USER, "Token invalid", "/users/signup/google"
                 ),
                 "code_status": 401,
             }
 
         data["role"] = data.get("role", "student")
         data["status"] = data.get("status", "active")
-        user = self.user_service.create_users(data)
-        user = self._serialize_user(user)
 
-        return {"response": jsonify({"data": user}), "code_status": 200}
+        result = self.user_service.create_users_federate(data)
+        if result["exist"]:
+            logger.warning(f"[CONTROLLER] User exist: {result}")
+            code_status = 204
+        else:
+            logger.warning(f"[CONTROLLER] User not exist: {result}")
+            code_status = 200
+        
+        user = self._serialize_user(result["user"])
+
+        logger.debug(f"[CONTROLLER] User federate: {user}")
+
+        return {"response": jsonify({"data": user}), "code_status": code_status}
 
     def authorize_login_token(self, request):
         """
