@@ -342,7 +342,7 @@ class UserController:
                     "code_status": 404,
                 }
 
-            if not self.user_service.user_is_validated(user_exists.uuid):
+            if not self.user_service.user_is_validated(user_exists.uuid) and user_exists.role != "admin":
                 return {
                     "response": get_error_json(
                         "[CONTROLLER] User not validated", f"User {user_exists.uuid}", url, "POST"
