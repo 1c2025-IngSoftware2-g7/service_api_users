@@ -627,11 +627,12 @@ class UserController:
         data["status"] = data.get("status", "active")
 
         result = self.user_service.create_users_federate(data)
-        if result["exist"]:
-            logger.warning(f"[CONTROLLER] User exist: {result}")
+        pin_validated = self.user_service.user_is_validated(result["user"].uuid)
+        if result["exist"] and pin_validated:
+            logger.warning(f"[CONTROLLER] User exist and has profile: {result}")
             code_status = 204
         else:
-            logger.warning(f"[CONTROLLER] User not exist: {result}")
+            logger.warning(f"[CONTROLLER] User has not exist has not profile: {result}")
             code_status = 200
         
         user = self._serialize_user(result["user"])
