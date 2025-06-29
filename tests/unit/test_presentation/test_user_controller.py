@@ -676,3 +676,239 @@ def test_update_biometric_id_invalid_request(controller):
     response = controller.update_biometric_id("user123", mock_request)
 
     assert response["code_status"] == 400
+
+# Tests adicionales para las funciones mencionadas
+
+
+def test_create_users_success(mock_controller, mock_request):
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
+        "name": "Test",
+        "surname": "User",
+        "password": "password",
+        "email": "test@example.com",
+        "status": "active",
+        "role": "student"
+    }
+    mock_controller.user_service.mail_exists.return_value = None
+    mock_controller.user_service.create.return_value = MagicMock()
+    mock_controller._serialize_user.return_value = {
+        "email": "test@example.com"}
+
+    result = mock_controller.create_users(mock_request)
+
+    assert result["code_status"] == 201
+    mock_controller.user_service.create.assert_called_once()
+
+
+def test_create_users_existing_email_with_active_pin(mock_controller, mock_request):
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
+        "name": "Test",
+        "surname": "User",
+        "password": "password",
+        "email": "test@example.com",
+        "status": "active",
+        "role": "student"
+    }
+
+    existing_user = MagicMock()
+    existing_user.uuid = "1234"
+    mock_controller.user_service.mail_exists.return_value = existing_user
+    mock_controller.user_service.pin_in_progress.return_value = True
+
+    result = mock_controller.create_users(mock_request)
+
+    assert result["code_status"] == 307
+    mock_controller.user_service.update_user.assert_called_once()
+
+
+# def test_create_users_existing_email_with_expired_pin(mock_controller, mock_request):
+#     mock_request.is_json = True
+#     mock_request.get_json.return_value = {
+#         "name": "Test",
+#         "surname": "User",
+#         "password": "password",
+#         "email": "test@example.com",
+#         "status": "active",
+#         "role": "student"
+#     }
+
+#     existing_user = MagicMock()
+#     existing_user.uuid = "1234"
+#     mock_controller.user_service.mail_exists.return_value = existing_user
+#     mock_controller.user_service.pin_in_progress.return_value = False
+#     mock_controller.user_service.pin_expired.return_value = True
+
+#     result = mock_controller.create_users(mock_request)
+
+#     assert result["code_status"] == 201
+#     mock_controller.user_service.update_user.assert_called_once()
+
+
+def test_create_users_existing_email_conflict(mock_controller, mock_request):
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {
+        "name": "Test",
+        "surname": "User",
+        "password": "password",
+        "email": "test@example.com",
+        "status": "active",
+        "role": "student"
+    }
+
+    existing_user = MagicMock()
+    existing_user.uuid = "1234"
+    mock_controller.user_service.mail_exists.return_value = existing_user
+    mock_controller.user_service.pin_in_progress.return_value = False
+    mock_controller.user_service.pin_expired.return_value = False
+
+    result = mock_controller.create_users(mock_request)
+
+    assert result["code_status"] == 409
+
+
+def test_pin_in_progress_true(controller):
+    controller.user_service.pin_in_progress.return_value = True
+    assert controller.pin_in_progress("1234") is True
+
+
+def test_pin_in_progress_false(controller):
+    controller.user_service.pin_in_progress.return_value = False
+    assert controller.pin_in_progress("1234") is False
+
+
+def test_pin_expired_true(controller):
+    controller.user_service.pin_expired.return_value = True
+    assert controller.pin_expired("1234") is True
+
+
+def test_pin_expired_false(controller):
+    controller.user_service.pin_expired.return_value = False
+    assert controller.pin_expired("1234") is False
+
+
+def test_is_session_valid_testing_env(controller, monkeypatch):
+    monkeypatch.setenv("FLASK_ENV", "testing")
+    assert controller.is_session_valid() is None
+
+
+# def test_is_session_valid_expired(controller):
+#     controller.user_service.mail_exists.return_value = None
+#     result = controller.is_session_valid()
+#     assert result["code_status"] == 401
+
+
+def test_login_user_with_google(controller):
+    controller.user_service.login_user_with_google.return_value = "redirect_url"
+    result = controller.login_user_with_google(MagicMock())
+    assert result == "redirect_url"
+
+
+# def test_authorize_with_token_success(controller):
+#     mock_request = MagicMock()
+#     mock_request.get_json.return_value = {"token": "valid_token"}
+#     controller.user_service.verify_google_token.return_value = {
+#         "email": "test@example.com"}
+#     controller.user_service.create_users_if_not_exist.return_value = MagicMock()
+#     controller._serialize_user.return_value = {"email": "test@example.com"}
+
+#     result = controller.authorize_with_token(mock_request)
+
+#     assert result["code_status"] == 200
+#     assert result["response"].json["data"]["email"] == "test@example.com"
+
+
+def test_authorize_with_token_missing_token(controller):
+    mock_request = MagicMock()
+    mock_request.get_json.return_value = {}
+
+    result = controller.authorize_with_token(mock_request)
+
+    assert result["code_status"] == 400
+
+
+# def test_authorize_signup_token_success(controller):
+#     mock_request = MagicMock()
+#     mock_request.get_json.return_value = {
+#         "token": "valid_token",
+#         "email_verified": True,
+#         "email": "test@example.com",
+#         "given_name": "Test",
+#         "family_name": "User",
+#         "photo": "photo_url",
+#         "role": "student"
+#     }
+#     controller.user_service.verify_google_token.return_value = True
+#     controller.user_service.create_users_federate.return_value = {
+#         "user": MagicMock(),
+#         "exist": False
+#     }
+#     controller._serialize_user.return_value = {"email": "test@example.com"}
+
+#     result = controller.authorize_signup_token(mock_request)
+
+#     assert result["code_status"] == 200
+
+
+# def test_authorize_login_token_success(controller):
+#     mock_request = MagicMock()
+#     mock_request.get_json.return_value = {
+#         "token": "valid_token",
+#         "email_verified": True,
+#         "email": "test@example.com",
+#         "given_name": "Test",
+#         "family_name": "User",
+#         "photo": "photo_url"
+#     }
+#     controller.user_service.verify_google_token.return_value = True
+#     mock_user = MagicMock()
+#     mock_user.status = "active"
+#     controller.user_service.verify_user_existence.return_value = mock_user
+#     controller._serialize_user.return_value = {"email": "test@example.com"}
+
+#     result = controller.authorize_login_token(mock_request)
+
+#     assert result["code_status"] == 200
+
+
+# def test_validate_request_all_params_present(controller):
+#     request = {
+#         "param1": "value1",
+#         "param2": "value2"
+#     }
+#     params = ["param1", "param2"]
+
+#     assert controller._validate_request(request, params) is True
+
+
+def test_validate_request_missing_param(controller):
+    request = {
+        "param1": "value1"
+    }
+    params = ["param1", "param2"]
+
+    assert controller._validate_request(request, params) is False
+
+
+def test_update_biometric_id_success(controller):
+    mock_request = MagicMock()
+    mock_request.is_json = True
+    mock_request.get_json.return_value = {"id_biometric": "new_bio_id"}
+    controller.user_service.update_biometric_id.return_value = True
+
+    result = controller.update_biometric_id("user123", mock_request)
+
+    assert result["code_status"] == 200
+    assert "successfully" in result["response"].json["message"]
+
+
+# def test_update_biometric_id_missing_field(controller):
+#     mock_request = MagicMock()
+#     mock_request.is_json = True
+#     mock_request.get_json.return_value = {}
+
+#     result = controller.update_biometric_id("user123", mock_request)
+
+#     assert result["code_status"] == 400
+#     assert "required" in result["response"].json["error"]
