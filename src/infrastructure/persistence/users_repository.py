@@ -282,7 +282,7 @@ class UsersRepository(BaseEntity):
         WHERE p.user_id = %s
         AND p.pin_type = 'registration'
         AND p.used = FALSE
-        AND p.created_at >= NOW() - INTERVAL '1 minutes'
+        AND p.created_at >= NOW() - INTERVAL '10 minutes'
         """
         self.cursor.execute(query, (uuid,))
         result = self.cursor.fetchone()
@@ -297,7 +297,7 @@ class UsersRepository(BaseEntity):
         WHERE p.user_id = %s
         AND p.pin_type = 'registration'
         AND p.used = FALSE
-        AND p.created_at < NOW() - INTERVAL '1 minutes'
+        AND p.created_at < NOW() - INTERVAL '10 minutes'
         """
         self.cursor.execute(query, (uuid,))
         result = self.cursor.fetchone()
