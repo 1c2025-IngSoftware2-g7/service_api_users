@@ -12,7 +12,7 @@ def test_create_user(client):
     data = {
         "name": "Test",
         "surname": "Test",
-        "email": "test@gmail.com",
+        "email": "test_email@gmail.com",
         "password": "1234",
         "status": "active",
         "role": "student",

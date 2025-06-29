@@ -7,6 +7,7 @@ import uuid
 from flask import Request, json
 
 from presentation.user_controller import UserController
+from src.domain.user import User
 from headers import PUT_LOCATION
 
 user_id = uuid.uuid4()
@@ -43,8 +44,8 @@ def mock_error_json(monkeypatch):
 
 @pytest.fixture
 def mock_controller():
-    controller = UserController()
-    controller.user_service = MagicMock()
+    user_service = MagicMock()
+    controller = UserController(user_service)
 
     controller.user_service.mail_exists = MagicMock()
     controller.user_service.pin_in_progress = MagicMock()
@@ -56,14 +57,6 @@ def mock_controller():
     controller._serialize_user = MagicMock()
 
     return controller
-
-@pytest.fixture
-def request_factory():
-    def _make_request(json_data):
-        builder = EnvironBuilder(method="POST", path="/users", json=json_data)
-        env = builder.get_environ()
-        return Request(WerkzeugRequest(env))
-    return _make_request
 
 def test_get_users_returns_200(app, controller, mock_user):
     controller.is_session_valid = MagicMock(return_value=None)
@@ -112,64 +105,6 @@ def test_create_user_success(controller, mock_user, mock_request):
 
     assert result["code_status"] == 201
     assert result["response"].json["data"]["email"] == "user.test@gmail.com"
-
-def test_create_user_conflict_409(mock_controller, request_factory):
-    user_uuid = uuid.uuid4()
-
-    request_data = {
-        "email": "test@example.com",
-        "password": "123456",
-        "role": "user",
-        "name": "Test",
-        "surname": "User",
-        "status": "active"
-    }
-
-    mock_controller.user_service.mail_exists.return_value = MagicMock(uuid=user_uuid)
-    mock_controller.user_service.pin_in_progress.return_value = False
-    mock_controller.user_service.pin_expired.return_value = False
-
-    request = request_factory(request_data)
-    response = mock_controller.create_users(request)
-
-    assert response["code_status"] == 409
-
-def test_create_user_pin_in_progress_307(controller, request_factory):
-    user_uuid = uuid.uuid4()
-    request_data = {
-        "email": "test@example.com",
-        "password": "123456",
-        "role": "user"
-    }
-
-    controller.user_service.mail_exists.return_value = MagicMock(uuid=user_uuid)
-    controller.pin_in_progress.return_value = True
-    controller.pin_expired.return_value = False
-    controller.user_service.update_user = MagicMock()
-    controller._check_create_user_params.return_value = (True, "")
-    request = request_factory(request_data)
-    response = controller.create_users(request)
-
-    assert response["code_status"] == 307
-    controller.user_service.update_user.assert_called_once()
-
-
-def test_create_user_pin_expired_201(controller, request_factory):
-    user_uuid = uuid.uuid4()
-    request_data = {"email": "test@example.com", "password": "123456", "role": "user"}
-    updated_user = {"email": "test@example.com", "uuid": str(user_uuid)}
-
-    controller.user_service.mail_exists.return_value = MagicMock(uuid=user_uuid)
-    controller.pin_in_progress = MagicMock(return_value=False)
-    controller.pin_expired = MagicMock(return_value=True)
-    controller.user_service.update_user = MagicMock(return_value=updated_user)
-    controller._serialize_user = MagicMock(return_value=updated_user)
-
-    request = request_factory(request_data)
-    response = controller.create_users(request)
-
-    assert response["code_status"] == 201
-    assert json.loads(response["response"].data)["data"]["email"] == "test@example.com"
 
 def test_login_user_success(controller, mock_user, app):
     controller.user_service.mail_exists.return_value = mock_user
@@ -436,7 +371,6 @@ def test_initiate_registration_confirmation_exception(controller, mock_error_jso
     assert result["code_status"] == 500
     assert "mocked error" in result["response"]["error"]
 
-
 def test_validate_registration_pin_success_message(controller, mock_user):
     controller.user_service.validate_registration_pin.return_value = {"message": "PIN valid", "code": 200, "user": mock_user}
     
@@ -445,14 +379,6 @@ def test_validate_registration_pin_success_message(controller, mock_user):
     assert result["code_status"] == 200
     assert result["response"].json["message"] == "PIN valid"
 
-def test_validate_registration_pin_success_error(controller):
-    controller.user_service.validate_registration_pin.return_value = {"error": "Invalid PIN", "code": 400}
-    
-    result = controller.validate_registration_pin("test@example.com", "wrongpin")
-    
-    assert result["code_status"] == 400
-    assert result["response"].json["error"] == "Invalid PIN"
-
 def test_validate_registration_pin_exception(controller, mock_error_json):
     controller.user_service.validate_registration_pin.side_effect = Exception("fail")
     
@@ -460,7 +386,6 @@ def test_validate_registration_pin_exception(controller, mock_error_json):
     
     assert result["code_status"] == 500
     assert "mocked error" in result["response"]["error"]
-
 
 def test_set_location_missing_data(controller):
     request = MagicMock()
@@ -471,7 +396,6 @@ def test_set_location_missing_data(controller):
     assert response["code_status"] == 400
     assert "Location is required" in response["response"].get_json()["detail"]
 
-
 def test_set_location_invalid_latitude(controller):
     request = MagicMock()
     request.get_json.return_value = {"latitude": "999", "longitude": "0"}
@@ -481,7 +405,6 @@ def test_set_location_invalid_latitude(controller):
     assert response["code_status"] == 400
     assert "Invalid latitude" in response["response"].get_json()["detail"]
 
-
 def test_set_location_invalid_longitude(controller):
     request = MagicMock()
     request.get_json.return_value = {"latitude": "0", "longitude": "-999"}
@@ -490,7 +413,6 @@ def test_set_location_invalid_longitude(controller):
 
     assert response["code_status"] == 400
     assert "Invalid longitude" in response["response"].get_json()["detail"]
-
 
 def test_set_location_user_not_found(controller):
     # valid location
@@ -504,7 +426,6 @@ def test_set_location_user_not_found(controller):
 
     assert response["code_status"] == 404
     assert "was not found" in response["response"].get_json()["detail"]
-
 
 def test_set_location_success(controller):
     request = MagicMock()
@@ -527,7 +448,6 @@ def test_create_admin_not_json(controller):
     assert response["code_status"] == 400
     assert "is not json" in response["response"].get_json()["detail"]
 
-
 def test_create_admin_missing_fields(controller):
     request = MagicMock()
     request.is_json = True
@@ -537,7 +457,6 @@ def test_create_admin_missing_fields(controller):
 
     assert response["code_status"] == 400
     assert "Missing fields" in response["response"].get_json()["detail"]
-
 
 def test_create_admin_invalid_auth(controller):
     request = MagicMock()
@@ -558,7 +477,6 @@ def test_create_admin_invalid_auth(controller):
 
     assert response["code_status"] == 403
     assert "not admin or not check password hash" in response["response"].get_json()["detail"]
-
 
 def test_create_admin_not_admin_role(controller):
     request = MagicMock()

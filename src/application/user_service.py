@@ -243,12 +243,12 @@ class UserService:
     def validate_registration_pin(self, email, pin_code):
         """Valida un PIN de confirmación de registro"""
         if not email or not pin_code:
-            return {"message": "Email and PIN are required", "code": 400}
+            return {"error": "Email and PIN are required", "code": 400, "message": "Email and PIN are required"}
 
         # Verificar que el usuario existe
         user = self.user_repository.get_user_with_email(email)
         if not user:
-            return {"message": "No user found with this email", "code": 404}
+            return {"error": "No user found with this email", "code": 404, "message": "No user found with this email"}
 
         # Validar el PIN
         is_valid = self.user_repository.validate_and_use_pin(
