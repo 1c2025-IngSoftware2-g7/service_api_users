@@ -768,15 +768,15 @@ class UserController:
         try:
             result = self.user_service.validate_registration_pin(email, pin_code)
             user = self._serialize_user(result["user"])
-            return {
-                "response": jsonify(
-                    {
+            if "message" in result:
+                response = {
                         "message": result["message"],
                         "user": user
                     }
-                    if "message" in result
-                    else {"error": result["error"]}
-                ),
+            else:
+                response = {"error": result["error"]}
+            return {
+                "response": jsonify(response),
                 "code_status": result["code"],
             }
         except Exception as e:
