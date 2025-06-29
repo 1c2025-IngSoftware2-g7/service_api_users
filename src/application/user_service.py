@@ -61,8 +61,19 @@ class UserService:
         return
 
     def mail_exists(self, email):
-        """  Function that check if a mail is valid on the database. If it is, we return the the user."""
+        """Function that check if a mail is valid on the database. If it is, we return the the user."""
         return self.user_repository.get_user_with_email(email)
+    
+    def pin_in_progress(self, uuid):
+        logger.debug(f"[SERVICE] uuid check if pin in progress: {uuid}")
+        return self.user_repository.pin_in_progress(uuid)
+    
+    def pin_expired(self, uuid):
+        logger.debug(f"[SERVICE] uuid check if pin expired: {uuid}")
+        return self.user_repository.pin_expired(uuid)
+
+    def update_user(self, user, uuid):
+        return self.user_repository.update_user(user, uuid)
 
     def login_user_with_google(self, role):
         """Login a user with google."""

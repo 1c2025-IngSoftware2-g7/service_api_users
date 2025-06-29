@@ -2,6 +2,7 @@ import os
 from flask import jsonify, session
 from werkzeug.security import check_password_hash
 
+
 from headers import (
     BAD_REQUEST,
     DELETE,
@@ -195,19 +196,39 @@ class UserController:
                 }
 
             # HOTFIX we cannot create a user with the same email
-            mail_exists = self.user_service.mail_exists(user["email"])
+            users_mail_exists = self.user_service.mail_exists(user["email"])
 
-            if mail_exists is not None:
-                return {
-                    "response": get_error_json(
-                        USER_ALREADY_EXISTS,
-                        f"The email {user['email']} already exists",
-                        url,
-                        "POST",
-                    ),
-                    "code_status": 409,
-                }
-
+            if users_mail_exists is not None:
+                # Pin enviado hace menos de 10min y no usado:
+                if self.pin_in_progress(users_mail_exists.uuid):
+                    self.user_service.update_user(user, users_mail_exists.uuid)
+                    return {
+                        "response": get_error_json(
+                            USER_ALREADY_EXISTS,
+                            f"The email {user['email']} already exists with validate pin in progress",
+                            url,
+                            "POST",
+                        ),
+                        "code_status": 307,
+                    }
+                elif self.pin_expired(users_mail_exists.uuid):
+                    user_updated = self.user_service.update_user(user, users_mail_exists.uuid)
+                    user_updated = self._serialize_user(user_updated)
+                    return {
+                            "response": jsonify({"data": user_updated}),
+                            "code_status": 201
+                        }
+                else:
+                    return {
+                        "response": get_error_json(
+                            USER_ALREADY_EXISTS,
+                            f"The email {user['email']} already exists",
+                            url,
+                            "POST",
+                        ),
+                        "code_status": 409,
+                    }
+                
             user = self.user_service.create(user)
             user = self._serialize_user(user)
             return {"response": jsonify({"data": user}), "code_status": 201}
@@ -218,6 +239,12 @@ class UserController:
             ),
             "code_status": 400,
         }
+    
+    def pin_in_progress(self, uuid):
+        return self.user_service.pin_in_progress(uuid)
+
+    def pin_expired(self, uuid):
+        return self.user_service.pin_expired(uuid)
 
     def set_user_location(self, user_id, request):
         """Add location."""

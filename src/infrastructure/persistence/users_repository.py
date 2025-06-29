@@ -147,6 +147,14 @@ class UsersRepository(BaseEntity):
         self.cursor.execute(query, params=params)
         self.conn.commit()
         return
+    
+    def update_user(self, user_data, user_uuid):
+        query = "UPDATE users SET name=%s, surname=%s, role=%s, password=%s WHERE uuid=%s"
+        params = (user_data.get("name"), user_data.get("surname"), user_data.get("role"), generate_password_hash(user_data.get("password")), user_uuid)
+
+        self.cursor.execute(query, params=params)
+        self.conn.commit()
+        return self.get_user(user_uuid)
 
     def _get_params_to_insert(self, params_new_user):
         if "email_verified" in params_new_user:  # log in with google
@@ -266,6 +274,37 @@ class UsersRepository(BaseEntity):
         result = self.cursor.fetchone()
         self.conn.commit()
         return bool(result)
+    
+    def pin_in_progress(self, uuid):
+        query = """
+        SELECT *
+        FROM pins p
+        WHERE p.user_id = %s
+        AND p.pin_type = 'registration'
+        AND p.used = FALSE
+        AND p.created_at >= NOW() - INTERVAL '1 minutes'
+        """
+        self.cursor.execute(query, (uuid,))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        logger.debug(f"[REPOSITORY] uuid: {uuid} - RESULT {result}")
+        return bool(result)
+    
+    def pin_expired(self, uuid):
+        query = """
+        SELECT *
+        FROM pins p
+        WHERE p.user_id = %s
+        AND p.pin_type = 'registration'
+        AND p.used = FALSE
+        AND p.created_at < NOW() - INTERVAL '1 minutes'
+        """
+        self.cursor.execute(query, (uuid,))
+        result = self.cursor.fetchone()
+        self.conn.commit()
+        logger.debug(f"[REPOSITORY] uuid: {uuid} - RESULT {result}")
+        return bool(result)
+    
 
     def has_used_pin(self, user_id: str) -> bool:
         """Verifica si el usuario tiene algún PIN marcado como usado"""
